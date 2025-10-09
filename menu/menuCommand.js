@@ -1,4 +1,13 @@
 /* Menu VOETUR – super apresentável */
+const pino = require('pino');
+
+const logger = pino({
+  transport: process.env.NODE_ENV !== 'production' ? {
+    target: 'pino-pretty',
+    options: { colorize: true, translateTime: 'SYS:standard' }
+  } : undefined
+});
+
 async function handleMenuCommand(message, client) {
   const texto =
     `*🟢 VOETUR ASSISTENTE*\n\n` +
@@ -21,7 +30,13 @@ async function handleMenuCommand(message, client) {
     `Salve este contato como *"Voetur Assistente"* e use sempre que precisar! ✅\n\n` +
     `*Atendimento 24h – Voetur 🟢*`;
 
-  await client.sendMessage(message.from, texto);
+  try {
+    await client.sendMessage(message.from, texto);
+    logger.info({ from: message.from }, 'Menu enviado com sucesso');
+  } catch (err) {
+    logger.error({ err, from: message.from }, 'Erro ao enviar menu');
+    throw err;
+  }
 }
 
 module.exports = { handleMenuCommand };
