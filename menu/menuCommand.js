@@ -1,17 +1,13 @@
-/* Menu VOETUR – super apresentável */
-const pino = require('pino');
-
-const logger = pino({
-  transport: process.env.NODE_ENV !== 'production' ? {
-    target: 'pino-pretty',
-    options: { colorize: true, translateTime: 'SYS:standard' }
-  } : undefined
-});
+/**
+ * Menu principal do assistente - apresentável e informativo
+ */
+const logger = require('../src/config/logger');
+const { CONFIG } = require('../src/config/constants');
 
 async function handleMenuCommand(message, client) {
   const texto =
-    `*🟢 VOETUR ASSISTENTE*\n\n` +
-    `*Olá!* 👋 Sou o assistente virtual da Voetur!\n` +
+    `*🟢 ${CONFIG.ASSISTANT_DISPLAY_NAME}*\n\n` +
+    `*Olá!* 👋 Sou o assistente virtual da ${CONFIG.COMPANY_NAME}!\n` +
     `*Vamos lá?* Vou te mostrar alguns assuntos para ajudar. 😊\n\n` +
     `*🔗 ABERTURA DE CHAMADO*\n` +
     `• Acesse nosso suporte:\n` +
@@ -27,8 +23,8 @@ async function handleMenuCommand(message, client) {
     `• Erick: *(31) 8301-3495*\n` +
     `• Henrique: *(11) 96310-7511*\n\n` +
     `*💡 DICA:*\n` +
-    `Salve este contato como *"Voetur Assistente"* e use sempre que precisar! ✅\n\n` +
-    `*Atendimento 24h – Voetur 🟢*`;
+    `Salve este contato como *"${CONFIG.CONTACT_NAME}"* e use sempre que precisar! ✅\n\n` +
+    `*Atendimento 24h – ${CONFIG.COMPANY_NAME} 🟢*`;
 
   try {
     await client.sendMessage(message.from, texto);

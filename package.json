@@ -13,8 +13,12 @@
     "pm2:restart": "pm2 restart zabbix-whatsapp-bot",
     "pm2:logs": "pm2 logs zabbix-whatsapp-bot",
     "pm2:monit": "pm2 monit",
-    "test:health": "curl http://localhost:3000/health || echo 'Serviço não está rodando'",
-    "logs:create": "mkdir -p logs"
+    "pm2:delete": "pm2 delete zabbix-whatsapp-bot",
+    "test:health": "curl -f http://localhost:3000/health || echo 'Serviço não está rodando'",
+    "test:zabbix": "node scripts/test-zabbix.js",
+    "logs:create": "mkdir -p logs",
+    "logs:clean": "rm -rf logs/*.log",
+    "clean": "rm -rf node_modules wwebjs_auth .wwebjs_cache firstMessages.json logs"
   },
   "keywords": [
     "whatsapp",

@@ -1,23 +1,20 @@
-/* ListMessage – ainda funcional */
-const pino = require('pino');
-
-const logger = pino({
-  transport: process.env.NODE_ENV !== 'production' ? {
-    target: 'pino-pretty',
-    options: { colorize: true, translateTime: 'SYS:standard' }
-  } : undefined
-});
+/**
+ * ListMessage - Menu interativo com botões
+ * Funcionalidade ainda suportada pelo WhatsApp Web.js
+ */
+const logger = require('../src/config/logger');
+const { CONFIG } = require('../src/config/constants');
 
 function buildMenuList(recipient) {
-  logger.info(`Building menu list for ${recipient}`);
+  logger.info({ recipient }, 'Construindo menu interativo');
   return {
     type: 'list',
-    header: { type: 'text', text: 'Menu de Opções' },
-    body: 'Escolha uma das opções abaixo:',
-    buttonText: 'Abrir menu',
+    header: { type: 'text', text: `${CONFIG.COMPANY_NAME} - Menu de Opções` },
+    body: `Olá! Sou o ${CONFIG.ASSISTANT_DISPLAY_NAME}. Escolha uma das opções abaixo:`,
+    buttonText: 'Ver opções',
     sections: [
       {
-        title: 'Opções',
+        title: 'Serviços Disponíveis',
         rows: [
           { id: 'menu_chamado',  title: '🔗 Abrir chamado' },
           { id: 'menu_infra',    title: '📞 Analistas de Infra' },
@@ -46,19 +43,19 @@ const menuAnswers = {
 };
 
 async function handleButtonResponse(message, client) {
-  const id = message.selectedRowId;
-  if (id && menuAnswers[id]) {
-    try {
+  try {
+    const id = message.selectedRowId;
+    if (id && menuAnswers[id]) {
       await client.sendMessage(message.from, menuAnswers[id]);
       logger.info({ from: message.from, buttonId: id }, 'Resposta de botão enviada');
       return true;
-    } catch (err) {
-      logger.error({ err, from: message.from, buttonId: id }, 'Erro ao enviar resposta de botão');
-      throw err;
     }
+    logger.debug({ from: message.from, buttonId: id }, 'Botão não reconhecido');
+    return false;
+  } catch (err) {
+    logger.error({ err, from: message.from }, 'Erro ao processar resposta de botão');
+    return false;
   }
-  logger.debug({ from: message.from, buttonId: id }, 'Botão não reconhecido');
-  return false;
 }
 
 module.exports = { buildMenuList, handleButtonResponse };

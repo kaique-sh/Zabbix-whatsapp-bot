@@ -5,6 +5,7 @@
  */
 
 require('dotenv').config();
+const logger = require('./src/config/logger');
 
 const validations = [
   {
@@ -40,48 +41,55 @@ const validations = [
 ];
 
 function validateConfig() {
-  console.log('🔍 Validando configuração...\n');
+  logger.info('🔍 Validando configuração...');
   
   let hasErrors = false;
   let hasWarnings = false;
+  const results = [];
 
   validations.forEach(({ key, required, validate, message }) => {
     const value = process.env[key];
     
     if (required && !value) {
-      console.log(`❌ ${key}: OBRIGATÓRIO - ${message}`);
+      logger.error(`❌ ${key}: OBRIGATÓRIO - ${message}`);
+      results.push({ key, status: 'error', message });
       hasErrors = true;
     } else if (value && !validate(value)) {
-      console.log(`❌ ${key}: INVÁLIDO - ${message}`);
+      logger.error(`❌ ${key}: INVÁLIDO - ${message}`);
+      results.push({ key, status: 'error', message });
       hasErrors = true;
     } else if (value) {
-      console.log(`✅ ${key}: OK`);
+      logger.info(`✅ ${key}: OK`);
+      results.push({ key, status: 'ok', value: value.substring(0, 10) + '...' });
     } else {
-      console.log(`⚠️  ${key}: Não definido (usando padrão)`);
+      logger.warn(`⚠️  ${key}: Não definido (usando padrão)`);
+      results.push({ key, status: 'warning', message: 'Usando valor padrão' });
       hasWarnings = true;
     }
   });
 
   // Validações especiais
   if (!process.env.API_TOKEN) {
-    console.log(`⚠️  API_TOKEN: Não definido - endpoint /zabbix ficará desprotegido`);
+    logger.warn(`⚠️  API_TOKEN: Não definido - endpoint /zabbix ficará desprotegido`);
     hasWarnings = true;
   }
 
-  console.log('\n📋 Resumo:');
+  logger.info('📋 Resumo da validação:', { 
+    errors: hasErrors, 
+    warnings: hasWarnings,
+    results 
+  });
   
   if (hasErrors) {
-    console.log('❌ Configuração inválida! Corrija os erros acima.');
+    logger.error('❌ Configuração inválida! Corrija os erros acima.');
     process.exit(1);
   } else if (hasWarnings) {
-    console.log('⚠️  Configuração válida com avisos. Considere definir as variáveis opcionais.');
+    logger.warn('⚠️  Configuração válida com avisos. Considere definir as variáveis opcionais.');
   } else {
-    console.log('✅ Configuração perfeita!');
+    logger.info('✅ Configuração perfeita!');
   }
 
-  console.log('\n🚀 Para iniciar:');
-  console.log('npm start          # Desenvolvimento');
-  console.log('npm run pm2:start  # Produção com PM2');
+  logger.info('🚀 Para iniciar: npm start (desenvolvimento) ou npm run pm2:start (produção)');
 }
 
 if (require.main === module) {
