@@ -4,8 +4,17 @@
   "description": "Dispara alertas do Zabbix para grupo do WhatsApp",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node validate-config.js && node index.js",
+    "dev": "nodemon index.js",
+    "setup": "node setup.js",
+    "validate": "node validate-config.js",
+    "pm2:start": "npm run validate && npm run logs:create && pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop zabbix-whatsapp-bot",
+    "pm2:restart": "pm2 restart zabbix-whatsapp-bot",
+    "pm2:logs": "pm2 logs zabbix-whatsapp-bot",
+    "pm2:monit": "pm2 monit",
+    "test:health": "curl http://localhost:3000/health || echo 'Serviço não está rodando'",
+    "logs:create": "mkdir -p logs"
   },
   "keywords": [
     "whatsapp",

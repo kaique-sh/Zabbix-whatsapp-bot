@@ -47,15 +47,32 @@ cp .env.example .env
 - `COMPANY_NAME`, `ASSISTANT_DISPLAY_NAME`, `MENU_COMMAND`, `CONTACT_NAME`
 
 ### 3. Execute
+
+**Configuração automática:**
+```bash
+npm run setup  # Assistente interativo
+```
+
+**Validação:**
+```bash
+npm run validate  # Verifica configuração
+```
+
+**Execução:**
 ```bash
 # Desenvolvimento (logs coloridos)
 npm run dev
 
-# Produção
+# Produção simples
 npm start
 
-# Ou via systemd
-systemctl --user start zapp
+# Produção com PM2 (recomendado)
+npm run pm2:start
+npm run pm2:logs    # Ver logs
+npm run pm2:monit   # Monitoramento
+
+# Healthcheck
+npm run test:health
 ```
 
 ##  Segurança

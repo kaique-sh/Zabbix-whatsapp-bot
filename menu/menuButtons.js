@@ -1,10 +1,19 @@
 /* ListMessage – ainda funcional */
+const pino = require('pino');
+
+const logger = pino({
+  transport: process.env.NODE_ENV !== 'production' ? {
+    target: 'pino-pretty',
+    options: { colorize: true, translateTime: 'SYS:standard' }
+  } : undefined
+});
+
 function buildMenuList(recipient) {
+  logger.info(`Building menu list for ${recipient}`);
   return {
     type: 'list',
     header: { type: 'text', text: 'Menu de Opções' },
     body: 'Escolha uma das opções abaixo:',
-    footer: 'Suporte Voetur',
     buttonText: 'Abrir menu',
     sections: [
       {
@@ -39,9 +48,16 @@ const menuAnswers = {
 async function handleButtonResponse(message, client) {
   const id = message.selectedRowId;
   if (id && menuAnswers[id]) {
-    await client.sendMessage(message.from, menuAnswers[id]);
-    return true;
+    try {
+      await client.sendMessage(message.from, menuAnswers[id]);
+      logger.info({ from: message.from, buttonId: id }, 'Resposta de botão enviada');
+      return true;
+    } catch (err) {
+      logger.error({ err, from: message.from, buttonId: id }, 'Erro ao enviar resposta de botão');
+      throw err;
+    }
   }
+  logger.debug({ from: message.from, buttonId: id }, 'Botão não reconhecido');
   return false;
 }
 
