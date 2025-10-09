@@ -1,0 +1,27 @@
+{
+  "name": "zabbix-whatsapp-bot",
+  "version": "1.0.0",
+  "description": "Dispara alertas do Zabbix para grupo do WhatsApp",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "zabbix",
+    "bot"
+  ],
+  "author": "kaiqueadm",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.1.4",
+    "express": "^4.18.2",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.34.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

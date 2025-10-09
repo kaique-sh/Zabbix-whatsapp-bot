@@ -1,0 +1,13 @@
+2025/10/08-17:53:58.328 1a216 Reusing MANIFEST /home/kaiqueadm/zabbix-whatsapp-bot/wwebjs_auth/session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/10/08-17:53:58.328 1a216 Recovering log #184
+2025/10/08-17:53:58.342 1a216 Reusing old log /home/kaiqueadm/zabbix-whatsapp-bot/wwebjs_auth/session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/000184.log 
+2025/10/08-17:53:59.718 1a214 Level-0 table #189: started
+2025/10/08-17:53:59.723 1a214 Level-0 table #189: 202199 bytes OK
+2025/10/08-17:53:59.725 1a214 Delete type=0 #184
+2025/10/08-17:53:59.725 1a214 Manual compaction at level-0 from '\x00B\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00C\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/10/08-17:54:01.350 1a214 Compacting 1@1 + 1@2 files
+2025/10/08-17:54:01.417 1a214 Generated table #190@1: 48659 keys, 1747504 bytes
+2025/10/08-17:54:01.417 1a214 Compacted 1@1 + 1@2 files => 1747504 bytes
+2025/10/08-17:54:01.420 1a214 compacted to: files[ 0 0 1 0 0 0 0 ]
+2025/10/08-17:54:01.420 1a214 Delete type=2 #189
+2025/10/08-17:54:01.420 1a214 Delete type=2 #186
