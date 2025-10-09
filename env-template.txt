@@ -1,0 +1,18 @@
+# Cole este conteúdo em um arquivo chamado .env (sem extensão)
+
+# OBRIGATÓRIO: ID do grupo WhatsApp
+GROUP_ID=SEU_GROUP_ID_AQUI
+
+# OPCIONAL: Token de segurança (recomendado)
+API_TOKEN=meu_token_secreto_123
+
+# OPCIONAL: Configurações do servidor
+PORT=3000
+NODE_ENV=development
+HEADLESS=true
+
+# OPCIONAL: Personalização
+COMPANY_NAME=Voetur
+ASSISTANT_DISPLAY_NAME=VOETUR ASSISTENTE
+MENU_COMMAND=!menu
+CONTACT_NAME=Voetur Assistente
