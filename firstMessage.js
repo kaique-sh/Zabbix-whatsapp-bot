@@ -1,5 +1,15 @@
-/* detecta e responde à PRIMEIRA mensagem de qualquer usuário */
-const firstMessages = new Set(); // guarda quem já recebeu apresentação
+/* detecta e responde à PRIMEIRA mensagem de qualquer usuário – SEM FLOOD */
+const fs = require('fs');
+const path = './firstMessages.json';
+
+// carrega lista de quem já recebeu (persiste em arquivo)
+let firstMessages = new Set();
+try {
+  const data = fs.readFileSync(path, 'utf8');
+  firstMessages = new Set(JSON.parse(data));
+} catch {
+  // arquivo não existe ainda – começa vazio
+}
 
 async function handleFirstMessage(message, client) {
   const userId = message.author || message.from; // grupo ou privado
@@ -15,7 +25,9 @@ async function handleFirstMessage(message, client) {
     `*Atendimento 24h – Voetur 🟢*`;
 
   await client.sendMessage(message.from, apresentacao);
-  firstMessages.add(userId); // marca como já apresentado
+
+  firstMessages.add(userId);
+  fs.writeFileSync(path, JSON.stringify([...firstMessages], null, 2));
 }
 
 module.exports = { handleFirstMessage };
