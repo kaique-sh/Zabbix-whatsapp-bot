@@ -28,6 +28,7 @@
     "test:menu": "node scripts/test-menu.js",
     "web:start": "node web-admin/server.js",
     "web:dev": "nodemon web-admin/server.js",
+    "web:reset": "bash scripts/reset-database.sh",
     "test:web": "bash scripts/test-web-panel.sh",
     "logs:create": "mkdir -p logs",
     "logs:clean": "rm -rf logs/*.log",

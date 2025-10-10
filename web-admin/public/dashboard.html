@@ -157,7 +157,7 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
         }
 
@@ -340,6 +340,10 @@
                         <div class="stat-number" id="totalCnpj">-</div>
                         <div class="stat-label">Consultas CNPJ</div>
                     </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalAlerts">-</div>
+                        <div class="stat-label">Alertas Zabbix</div>
+                    </div>
                 </div>
             </div>
 
@@ -500,30 +504,52 @@
         // Carregar estatísticas
         async function loadStats() {
             try {
+                console.log('Carregando estatísticas...');
                 const response = await fetch('/api/bot/stats', {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
+                
+                console.log('Response status:', response.status);
                 const data = await response.json();
+                console.log('Stats data:', data);
 
-                if (data.success && data.totals) {
-                    document.getElementById('totalSent').textContent = data.totals.total_sent || 0;
-                    document.getElementById('totalReceived').textContent = data.totals.total_received || 0;
-                    document.getElementById('totalCommands').textContent = data.totals.total_commands || 0;
-                    document.getElementById('totalCnpj').textContent = data.totals.total_cnpj || 0;
+                if (data.success) {
+                    const totals = data.totals;
+                    document.getElementById('totalSent').textContent = totals.total_sent || 0;
+                    document.getElementById('totalReceived').textContent = totals.total_received || 0;
+                    document.getElementById('totalCommands').textContent = totals.total_commands || 0;
+                    document.getElementById('totalCnpj').textContent = totals.total_cnpj || 0;
+                    document.getElementById('totalAlerts').textContent = totals.total_alerts || 0;
+                    console.log('✅ Estatísticas carregadas com sucesso');
+                } else {
+                    console.error('❌ Erro ao carregar estatísticas:', data.message);
+                    // Mostrar valores padrão em caso de erro
+                    document.getElementById('totalSent').textContent = '-';
+                    document.getElementById('totalReceived').textContent = '-';
+                    document.getElementById('totalCommands').textContent = '-';
+                    document.getElementById('totalCnpj').textContent = '-';
+                    document.getElementById('totalAlerts').textContent = '-';
                 }
             } catch (error) {
-                console.error('Erro ao carregar estatísticas:', error);
+                console.error('❌ Erro de conexão ao carregar estatísticas:', error);
+                // Mostrar valores padrão em caso de erro
+                document.getElementById('totalSent').textContent = 'Erro';
+                document.getElementById('totalReceived').textContent = 'Erro';
+                document.getElementById('totalCommands').textContent = 'Erro';
+                document.getElementById('totalCnpj').textContent = 'Erro';
+                document.getElementById('totalAlerts').textContent = 'Erro';
             }
         }
 
         // Carregar health check
         async function loadHealthCheck() {
             try {
+                console.log('Carregando health check...');
                 const response = await fetch('/api/bot/health', {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
+                
                 const data = await response.json();
-
                 const container = document.getElementById('healthStatus');
 
                 if (data.success && data.healthy) {
@@ -531,7 +557,7 @@
                         <div style="text-align: center; color: #28a745;">
                             <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
                             <p><strong>Sistema Saudável</strong></p>
-                            <small>WhatsApp: ${data.data.whatsapp ? 'Conectado' : 'Desconectado'}</small>
+                            <small>WhatsApp: ${data.data?.whatsapp ? 'Conectado' : 'Desconectado'}</small>
                         </div>
                     `;
                 } else {
@@ -543,8 +569,17 @@
                         </div>
                     `;
                 }
+                console.log('✅ Health check carregado');
             } catch (error) {
-                console.error('Erro ao carregar health check:', error);
+                console.error('❌ Erro ao carregar health check:', error);
+                const container = document.getElementById('healthStatus');
+                container.innerHTML = `
+                    <div style="text-align: center; color: #dc3545;">
+                        <i class="fas fa-times-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p><strong>Erro de Conexão</strong></p>
+                        <small>Não foi possível verificar o status</small>
+                    </div>
+                `;
             }
         }
 

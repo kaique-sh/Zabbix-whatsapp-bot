@@ -141,6 +141,23 @@ function initDatabase() {
               stmt.finalize();
 
               console.log('✅ Configurações padrão inseridas');
+              
+              // Inserir dados de exemplo para estatísticas
+              const sampleStats = [
+                [new Date().toISOString().split('T')[0], 25, 18, 12, 5, 3, 8], // Hoje
+                [new Date(Date.now() - 86400000).toISOString().split('T')[0], 32, 24, 15, 8, 2, 12], // Ontem
+                [new Date(Date.now() - 172800000).toISOString().split('T')[0], 18, 15, 9, 3, 1, 6], // 2 dias atrás
+                [new Date(Date.now() - 259200000).toISOString().split('T')[0], 41, 35, 22, 12, 4, 15], // 3 dias atrás
+                [new Date(Date.now() - 345600000).toISOString().split('T')[0], 28, 21, 14, 7, 2, 9], // 4 dias atrás
+              ];
+
+              const statsStmt = db.prepare("INSERT OR IGNORE INTO bot_stats (date, messages_sent, messages_received, commands_executed, cnpj_queries, zabbix_alerts, unique_users) VALUES (?, ?, ?, ?, ?, ?, ?)");
+              sampleStats.forEach(stat => {
+                statsStmt.run(stat);
+              });
+              statsStmt.finalize();
+
+              console.log('✅ Dados de exemplo para estatísticas inseridos');
               resolve(db);
             }
           );
