@@ -278,12 +278,6 @@ bash scripts/install-web-admin.sh  # Instalação automática
 npm run web:start                  # Iniciar painel
 ```
 
-### Acesso:
-- **URL**: http://localhost:4000
-- **Login**: admin
-- **Senha**: admin123
-- **⚠️ Altere a senha após primeiro acesso!**
-
 ### Funcionalidades:
 ```
 📊 Dashboard
