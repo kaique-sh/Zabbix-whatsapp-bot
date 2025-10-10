@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Validador de configuração do Zabbix WhatsApp Bot
+ * Validador de configuração do Voetur WhatsApp Bot
  * Executa: node validate-config.js
  */
 
@@ -70,7 +70,7 @@ function validateConfig() {
 
   // Validações especiais
   if (!process.env.API_TOKEN) {
-    logger.warn(`⚠️  API_TOKEN: Não definido - endpoint /zabbix ficará desprotegido`);
+    logger.warn(`⚠️  API_TOKEN: Não definido - APIs ficarão desprotegidas`);
     hasWarnings = true;
   }
 

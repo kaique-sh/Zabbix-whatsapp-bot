@@ -1,9 +1,11 @@
 /**
- * Rotas de controle do bot
+ * Rotas para controle do bot
  */
 
 const express = require('express');
 const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const { getDatabase } = require('../database/init');
 
@@ -38,15 +40,13 @@ router.get('/status', authenticateToken, (req, res) => {
 
       res.json({
         success: true,
-        status: botProcess.pm2_env?.status || 'unknown',
-        message: 'Status obtido com sucesso',
-        details: {
-          pid: botProcess.pid,
-          uptime: botProcess.pm2_env?.pm_uptime,
-          restarts: botProcess.pm2_env?.restart_time,
-          memory: botProcess.monit?.memory,
-          cpu: botProcess.monit?.cpu
-        }
+        status: botProcess.pm2_env.status,
+        pid: botProcess.pid,
+        uptime: botProcess.pm2_env.pm_uptime,
+        restarts: botProcess.pm2_env.restart_time,
+        memory: botProcess.monit.memory,
+        cpu: botProcess.monit.cpu,
+        message: `Bot está ${botProcess.pm2_env.status}`
       });
     } catch (parseError) {
       res.json({
@@ -63,7 +63,8 @@ router.get('/status', authenticateToken, (req, res) => {
  * Iniciar bot
  */
 router.post('/start', authenticateToken, requireAdmin, (req, res) => {
-  exec('pm2 start ecosystem.config.js --name voetur-whatsapp-bot', (error, stdout, stderr) => {
+  const projectPath = path.join(__dirname, '../..');
+  exec('pm2 start ecosystem.config.js', { cwd: projectPath }, (error, stdout, stderr) => {
     if (error) {
       return res.json({
         success: false,
@@ -78,7 +79,7 @@ router.post('/start', authenticateToken, requireAdmin, (req, res) => {
 
     res.json({
       success: true,
-      message: 'Bot iniciado com sucesso',
+      message: 'Sistema iniciado com sucesso',
       output: stdout
     });
   });
@@ -156,7 +157,6 @@ router.get('/logs', authenticateToken, (req, res) => {
       success: true,
       logs: stdout,
       timestamp: new Date().toISOString()
-    });
   });
 });
 

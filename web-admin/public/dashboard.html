@@ -1,10 +1,10 @@
 <html lang="pt-BR">
-<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Voetur Bot</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="theme-color" content="#667eea">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <style>
         * {
@@ -276,9 +276,10 @@
     <div class="header">
         <h1><i class="fas fa-robot"></i> Voetur Bot - Dashboard</h1>
         <div class="nav-links">
-            <a href="/dashboard" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-            <a href="/commands"><i class="fas fa-terminal"></i> Comandos</a>
-            <a href="/settings"><i class="fas fa-cog"></i> Configurações</a>
+            <a href="/dashboard.html" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/commands.html"><i class="fas fa-terminal"></i> Comandos</a>
+            <a href="/users.html"><i class="fas fa-users"></i> Usuários</a>
+            <a href="/settings.html"><i class="fas fa-cog"></i> Configurações</a>
         </div>
         <div class="user-info">
             <span id="userInfo">Carregando...</span>
@@ -341,8 +342,8 @@
                         <div class="stat-label">Consultas CNPJ</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-number" id="totalAlerts">-</div>
-                        <div class="stat-label">Alertas Zabbix</div>
+                        <div class="stat-number" id="totalMessages">-</div>
+                        <div class="stat-label">Total Mensagens</div>
                     </div>
                 </div>
             </div>
@@ -383,7 +384,7 @@
             <span>👨‍💻 <strong>Desenvolvedor:</strong> Desenvolvido pelo Analista Kaique Rodrigues</span>
         </div>
         <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #888;">
-            Voetur Bot - Sistema de Alertas Zabbix via WhatsApp
+            Voetur Bot - Sistema de Bot WhatsApp
         </div>
     </footer>
 
@@ -462,10 +463,17 @@
         // Carregar status do bot
         async function loadBotStatus() {
             try {
+                console.log('🔍 Carregando status do bot...');
                 const response = await fetch('/api/bot/status', {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
                 const data = await response.json();
+                console.log('📊 Status recebido:', data);
 
                 const indicator = document.getElementById('statusIndicator');
                 const text = document.getElementById('statusText');
@@ -477,32 +485,58 @@
                         indicator.className = 'status-indicator status-online';
                         indicator.innerHTML = '<i class="fas fa-check"></i>';
                         text.textContent = 'Online';
-                        info.textContent = `PID: ${data.pid} | Uptime: ${formatUptime(data.uptime)} | Restarts: ${data.restarts}`;
+                        
+                        // Acessar dados de details corretamente
+                        const pid = data.details?.pid || 'N/A';
+                        const uptime = data.details?.uptime ? formatUptime(data.details.uptime) : 'N/A';
+                        const restarts = data.details?.restarts || 0;
+                        const memory = data.details?.memory ? formatMemory(data.details.memory) : 'N/A';
+                        const cpu = data.details?.cpu ? data.details.cpu.toFixed(1) + '%' : 'N/A';
+                        
+                        info.innerHTML = `
+                            <strong>PID:</strong> ${pid} | 
+                            <strong>Uptime:</strong> ${uptime} | 
+                            <strong>Restarts:</strong> ${restarts}<br>
+                            <strong>CPU:</strong> ${cpu} | 
+                            <strong>Memória:</strong> ${memory}
+                        `;
                         details.classList.remove('hidden');
+                        console.log('✅ Bot está online');
                     } else if (data.status === 'stopped') {
                         indicator.className = 'status-indicator status-offline';
                         indicator.innerHTML = '<i class="fas fa-times"></i>';
                         text.textContent = 'Parado';
                         details.classList.add('hidden');
+                        console.log('⏸️ Bot está parado');
                     } else {
                         indicator.className = 'status-indicator status-unknown';
                         indicator.innerHTML = '<i class="fas fa-question"></i>';
-                        text.textContent = 'Desconhecido';
+                        text.textContent = data.status || 'Desconhecido';
                         details.classList.add('hidden');
+                        console.log('❓ Status desconhecido:', data.status);
                     }
                 } else {
                     indicator.className = 'status-indicator status-unknown';
                     indicator.innerHTML = '<i class="fas fa-exclamation"></i>';
                     text.textContent = 'Erro';
                     details.classList.add('hidden');
+                    console.error('❌ Erro na resposta:', data.message);
                 }
             } catch (error) {
-                console.error('Erro ao carregar status:', error);
+                console.error('❌ Erro ao carregar status:', error);
+                const indicator = document.getElementById('statusIndicator');
+                const text = document.getElementById('statusText');
+                const details = document.getElementById('statusDetails');
+                
+                indicator.className = 'status-indicator status-unknown';
+                indicator.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                text.textContent = 'Erro de Conexão';
+                details.classList.add('hidden');
             }
         }
 
-        // Carregar estatísticas
-        async function loadStats() {
+        // Carregar estatísticas com retry automático
+        async function loadStats(retryCount = 0) {
             try {
                 console.log('Carregando estatísticas...');
                 const response = await fetch('/api/bot/stats', {
@@ -510,6 +544,18 @@
                 });
                 
                 console.log('Response status:', response.status);
+                
+                // Se for rate limiting (429), tentar novamente após delay
+                if (response.status === 429) {
+                    if (retryCount < 3) {
+                        console.log(`⏳ Rate limit atingido, tentando novamente em ${(retryCount + 1) * 2} segundos...`);
+                        setTimeout(() => loadStats(retryCount + 1), (retryCount + 1) * 2000);
+                        return;
+                    } else {
+                        throw new Error('Rate limit: Muitas tentativas');
+                    }
+                }
+
                 const data = await response.json();
                 console.log('Stats data:', data);
 
@@ -519,35 +565,62 @@
                     document.getElementById('totalReceived').textContent = totals.total_received || 0;
                     document.getElementById('totalCommands').textContent = totals.total_commands || 0;
                     document.getElementById('totalCnpj').textContent = totals.total_cnpj || 0;
-                    document.getElementById('totalAlerts').textContent = totals.total_alerts || 0;
+                    document.getElementById('totalMessages').textContent = totals.total_messages || 0;
                     console.log('✅ Estatísticas carregadas com sucesso');
                 } else {
                     console.error('❌ Erro ao carregar estatísticas:', data.message);
+                    
+                    // Se for erro de rate limiting, mostrar mensagem específica
+                    if (data.message && data.message.includes('requisições')) {
+                        showAlert('Muitas requisições. Os dados serão atualizados automaticamente em alguns segundos.', 'warning');
+                        // Tentar novamente após 10 segundos
+                        setTimeout(() => loadStats(), 10000);
+                    }
+                    
                     // Mostrar valores padrão em caso de erro
                     document.getElementById('totalSent').textContent = '-';
                     document.getElementById('totalReceived').textContent = '-';
                     document.getElementById('totalCommands').textContent = '-';
                     document.getElementById('totalCnpj').textContent = '-';
-                    document.getElementById('totalAlerts').textContent = '-';
+                    document.getElementById('totalMessages').textContent = '-';
                 }
             } catch (error) {
                 console.error('❌ Erro de conexão ao carregar estatísticas:', error);
-                // Mostrar valores padrão em caso de erro
+                
+                // Se for erro de rate limiting, tentar novamente
+                if (error.message.includes('Rate limit') && retryCount < 3) {
+                    console.log(`⏳ Tentando novamente em ${(retryCount + 1) * 5} segundos...`);
+                    setTimeout(() => loadStats(retryCount + 1), (retryCount + 1) * 5000);
+                    return;
+                }
+                
+                // Mostrar valores de erro
                 document.getElementById('totalSent').textContent = 'Erro';
                 document.getElementById('totalReceived').textContent = 'Erro';
                 document.getElementById('totalCommands').textContent = 'Erro';
                 document.getElementById('totalCnpj').textContent = 'Erro';
-                document.getElementById('totalAlerts').textContent = 'Erro';
+                document.getElementById('totalMessages').textContent = 'Erro';
+                
+                showAlert('Erro ao carregar estatísticas. Tentando novamente...', 'error');
             }
         }
 
-        // Carregar health check
-        async function loadHealthCheck() {
+        // Carregar health check com retry automático
+        async function loadHealthCheck(retryCount = 0) {
             try {
                 console.log('Carregando health check...');
                 const response = await fetch('/api/bot/health', {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
+                
+                // Se for rate limiting (429), tentar novamente após delay
+                if (response.status === 429) {
+                    if (retryCount < 2) {
+                        console.log(`⏳ Rate limit no health check, tentando novamente em ${(retryCount + 1) * 3} segundos...`);
+                        setTimeout(() => loadHealthCheck(retryCount + 1), (retryCount + 1) * 3000);
+                        return;
+                    }
+                }
                 
                 const data = await response.json();
                 const container = document.getElementById('healthStatus');
@@ -572,6 +645,13 @@
                 console.log('✅ Health check carregado');
             } catch (error) {
                 console.error('❌ Erro ao carregar health check:', error);
+                
+                // Se for erro de rate limiting, tentar novamente
+                if (error.message.includes('Rate limit') && retryCount < 2) {
+                    setTimeout(() => loadHealthCheck(retryCount + 1), (retryCount + 1) * 3000);
+                    return;
+                }
+                
                 const container = document.getElementById('healthStatus');
                 container.innerHTML = `
                     <div style="text-align: center; color: #dc3545;">
@@ -649,43 +729,76 @@
         }
 
         async function controlBot(action, message) {
+            console.log(`🎮 Executando ação: ${action}`);
+            
             // Desabilitar botões durante a operação
             const buttons = document.querySelectorAll('#startBtn, #restartBtn, #stopBtn');
-            buttons.forEach(btn => btn.disabled = true);
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+            });
             
             showAlert(message, 'info');
             
             try {
                 const response = await fetch(`/api/bot/${action}`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${authToken}` }
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
                 
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
-                console.log(`Resposta do ${action}:`, data);
+                console.log(`📊 Resposta do ${action}:`, data);
 
                 if (data.success) {
                     showAlert(data.message, 'success');
-                    // Aguardar um pouco mais para o PM2 processar
-                    setTimeout(loadBotStatus, 3000);
+                    console.log(`✅ ${action} executado com sucesso`);
+                    
+                    // Aguardar o PM2 processar e atualizar status
+                    setTimeout(() => {
+                        loadBotStatus();
+                        console.log('🔄 Status atualizado');
+                    }, 2000);
+                    
+                    // Atualizar logs após ação
+                    setTimeout(() => {
+                        loadLogs();
+                    }, 3000);
                 } else {
                     let errorMsg = data.message || `Erro ao ${action} bot`;
+                    
+                    // Adicionar detalhes do erro se disponíveis
                     if (data.details) {
-                        errorMsg += `\nDetalhes: ${data.details}`;
+                        console.error('📋 Detalhes do erro:', data.details);
+                        errorMsg += `\n\nDetalhes: ${data.details}`;
                     }
                     if (data.error) {
-                        errorMsg += `\nErro: ${data.error}`;
+                        console.error('⚠️ Erro técnico:', data.error);
+                        errorMsg += `\n\nErro: ${data.error}`;
                     }
+                    
                     showAlert(errorMsg, 'danger');
-                    console.error(`Erro detalhado do ${action}:`, data);
+                    console.error(`❌ Erro detalhado do ${action}:`, data);
                 }
             } catch (error) {
-                console.error(`Erro ao ${action} bot:`, error);
-                showAlert(`Erro de conexão ao ${action} bot`, 'danger');
+                console.error(`❌ Erro ao ${action} bot:`, error);
+                showAlert(`Erro de conexão ao ${action} bot: ${error.message}`, 'danger');
             } finally {
-                // Reabilitar botões
+                // Reabilitar botões após um delay
                 setTimeout(() => {
-                    buttons.forEach(btn => btn.disabled = false);
+                    buttons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.style.cursor = 'pointer';
+                    });
+                    console.log('🔓 Botões reabilitados');
                 }, 2000);
             }
         }
@@ -770,6 +883,16 @@
             }, 5000);
         }
 
+        function formatMemory(bytes) {
+            if (!bytes || bytes === 0) return 'N/A';
+            const mb = bytes / (1024 * 1024);
+            if (mb < 1024) {
+                return `${mb.toFixed(1)} MB`;
+            }
+            const gb = mb / 1024;
+            return `${gb.toFixed(2)} GB`;
+        }
+
         function formatUptime(uptime) {
             if (!uptime) return 'N/A';
             const seconds = Math.floor((Date.now() - uptime) / 1000);
@@ -777,7 +900,7 @@
             const minutes = Math.floor((seconds % 3600) / 60);
             return `${hours}h ${minutes}m`;
         }
-
     </script>
+    
 </body>
 </html>

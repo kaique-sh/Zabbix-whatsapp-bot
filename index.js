@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Zabbix WhatsApp Bot - Arquivo principal
- * Bot para envio de alertas do Zabbix via WhatsApp
+ * Voetur WhatsApp Bot - Arquivo principal
+ * Bot WhatsApp com painel web de administração
  */
 
 /* 1. Carregamento de variáveis de ambiente */
@@ -15,7 +15,7 @@ const express = require('express');
 // Configurações centralizadas
 const logger = require('./src/config/logger');
 const { CONFIG, validateRequiredConfig } = require('./src/config/constants');
-const { formatZabbixAlert, sendMessageSafely, isClientReady } = require('./src/utils/helpers');
+const { sendMessageSafely, isClientReady } = require('./src/utils/helpers');
 
 // Handlers de mensagem
 const { handleFirstMessage } = require('./firstMessage');
@@ -24,6 +24,7 @@ const { handleButtonResponse } = require('./menu/menuButtons');
 const { handleMenuNavigation } = require('./menu/menuNavigation');
 const { handleCNPJCommand } = require('./src/commands/cnpjCommand');
 const { handleCustomCommand } = require('./src/commands/customCommands');
+const { handleStickerCommand } = require('./src/commands/stickerCommand');
 
 /* 3. Validação de configuração */
 try {
@@ -37,7 +38,7 @@ try {
 const client = new Client({
   authStrategy: new LocalAuth({ 
     dataPath: CONFIG.AUTH_DATA_PATH,
-    clientId: 'zabbix-whatsapp-bot'
+    clientId: 'voetur-whatsapp-bot'
   }),
   puppeteer: {
     headless: CONFIG.HEADLESS,
@@ -133,6 +134,12 @@ client.on('message', async message => {
 
     const body = (message.body || '').trim();
 
+    /* comando privado !figurinha (sempre responde em privado) */
+    const processedSticker = await handleStickerCommand(message, client);
+    if (processedSticker) {
+      return;
+    }
+
     /* comando do menu */
     if (body.toLowerCase() === CONFIG.MENU_COMMAND.toLowerCase()) {
       logger.info({ from: message.from }, `Comando ${CONFIG.MENU_COMMAND} recebido`);
@@ -170,74 +177,19 @@ client.on('message', async message => {
     }
 
     /* continue seus comandos aqui... */
-
   } catch (err) {
     logger.error({ err, from: message.from }, 'Erro ao processar mensagem');
   }
 });
 
-/* 7. API REST do Zabbix */
+/* 7. API REST */
 const app = express();
 app.use(express.json());
 
-// Middleware de autenticação
-function authenticate(req, res, next) {
-  if (!CONFIG.API_TOKEN) {
-    logger.warn('API_TOKEN não configurado - endpoint desprotegido');
-    return next();
-  }
-  
-  const token = req.headers['authorization']?.replace('Bearer ', '');
-  if (token !== CONFIG.API_TOKEN) {
-    logger.warn({ ip: req.ip }, 'Tentativa de acesso não autorizado');
-    return res.status(401).json({ error: 'Não autorizado' });
-  }
-  next();
-}
-
-app.get('/health', (_req, res) => {
+// Endpoint de health check
+app.get('/health', (req, res) => {
+  const isReady = isClientReady(client);
   res.json({ status: 'ok', whatsapp: isReady });
-});
-
-app.post('/zabbix', authenticate, async (req, res) => {
-  const startTime = Date.now();
-  try {
-    if (!CONFIG.GROUP_ID) {
-      logger.error('GROUP_ID não configurado');
-      return res.status(500).json({ error: 'GROUP_ID não configurado' });
-    }
-    // Verificação mais robusta do estado do cliente
-    const clientReady = await isClientReady(client);
-    if (!isReady || !clientReady) {
-      logger.warn({ isReady, clientReady }, 'Cliente WhatsApp não está pronto');
-      return res.status(503).json({ 
-        error: 'Cliente WhatsApp não está pronto',
-        details: { isReady, clientReady }
-      });
-    }
-
-    const { subject, message } = req.body || {};
-    if (!subject || !message) {
-      logger.warn({ body: req.body }, 'Payload inválido');
-      return res.status(400).json({ 
-        error: 'Campos subject e message são obrigatórios',
-        received: req.body 
-      });
-    }
-
-    const text = formatZabbixAlert(subject, message);
-    
-    // Usar função de envio seguro com retry automático
-    await sendMessageSafely(client, CONFIG.GROUP_ID, text);
-    
-    const duration = Date.now() - startTime;
-    logger.info({ subject, duration }, 'Alerta Zabbix enviado com sucesso');
-    res.json({ status: 'success', message: 'Alerta enviado', duration });
-  } catch (e) {
-    const duration = Date.now() - startTime;
-    logger.error({ err: e, duration }, 'Erro ao enviar alerta Zabbix');
-    res.status(500).json({ error: 'Erro interno', duration });
-  }
 });
 
 /* 8. Inicialização */
@@ -247,11 +199,6 @@ client.initialize();
 app.listen(CONFIG.PORT, '0.0.0.0', () => {
   logger.info({ 
     port: CONFIG.PORT, 
-    auth: !!CONFIG.API_TOKEN,
     company: CONFIG.COMPANY_NAME 
   }, `API REST escutando em 0.0.0.0:${CONFIG.PORT}`);
-  
-  if (!CONFIG.API_TOKEN) {
-    logger.warn('⚠️  API_TOKEN não definido - considere proteger o endpoint /zabbix');
-  }
 });

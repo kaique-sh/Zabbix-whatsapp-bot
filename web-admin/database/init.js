@@ -28,25 +28,27 @@ function initDatabase() {
       }
       console.log('✅ Banco de dados conectado');
     });
-
     // Criar tabelas
     db.serialize(() => {
       // Tabela de usuários
       db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        email TEXT,
-        role TEXT DEFAULT 'admin',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        username VARCHAR(50) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        email VARCHAR(100) UNIQUE NOT NULL,
+        role VARCHAR(20) DEFAULT 'user',
+        is_active BOOLEAN DEFAULT 1,
+        created_by INTEGER,
         last_login DATETIME,
-        active INTEGER DEFAULT 1
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (created_by) REFERENCES users (id)
       )`);
 
       // Tabela de sessões
       db.run(`CREATE TABLE IF NOT EXISTS sessions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
+        user_id INTEGER NOT NULL,
         token TEXT UNIQUE NOT NULL,
         expires_at DATETIME NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -91,13 +93,12 @@ function initDatabase() {
 
       // Tabela de estatísticas do bot
       db.run(`CREATE TABLE IF NOT EXISTS bot_stats (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
         date DATE NOT NULL,
         messages_sent INTEGER DEFAULT 0,
         messages_received INTEGER DEFAULT 0,
         commands_executed INTEGER DEFAULT 0,
         cnpj_queries INTEGER DEFAULT 0,
-        zabbix_alerts INTEGER DEFAULT 0,
+        total_messages INTEGER DEFAULT 0,
         unique_users INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )`);

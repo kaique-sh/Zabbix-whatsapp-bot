@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voetur Bot - Painel de Administração</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="theme-color" content="#667eea">
     <style>
         * {
             margin: 0;
@@ -169,19 +169,6 @@
             color: #666;
             font-size: 0.8rem;
         }
-
-        .default-credentials {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            font-size: 0.85rem;
-        }
-
-        .default-credentials strong {
-            color: #495057;
-        }
     </style>
 </head>
 <body>
@@ -190,12 +177,6 @@
             <i class="fas fa-robot"></i>
             <h1>Voetur Bot</h1>
             <p>Painel de Administração</p>
-        </div>
-
-        <div class="default-credentials">
-            <strong>Credenciais Padrão:</strong><br>
-            Usuário: <code>admin</code><br>
-            Senha: <code>admin123</code>
         </div>
 
         <div id="alert" class="alert" style="display: none;"></div>
@@ -233,7 +214,7 @@
                 <span>👨‍💻 <strong>Desenvolvedor:</strong> Desenvolvido pelo Analista Kaique Rodrigues</span>
             </div>
             <div style="font-size: 0.75rem; color: #999;">
-                Voetur Bot - Sistema de Alertas Zabbix via WhatsApp
+                Voetur Bot - Sistema de Bot WhatsApp
             </div>
             <div style="font-size: 0.7rem; color: #aaa; margin-top: 0.5rem;">
                 &copy; 2024 Voetur - Sistema de Gerenciamento de Bot
@@ -342,5 +323,6 @@
             }
         });
     </script>
+    
 </body>
 </html>

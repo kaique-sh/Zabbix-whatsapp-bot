@@ -1,14 +1,8 @@
-# 🤖 Zabbix WhatsApp Bot – Voetur Assistente
+# 🤖 Voetur WhatsApp Bot
 
-Bot WhatsApp profissional que recebe alertas do Zabbix e envia para grupo específico, com menu interativo, apresentação automática e arquitetura robusta.
+Bot WhatsApp profissional com menu interativo, apresentação automática e arquitetura robusta, incluindo painel web de administração.
 
 ## ✨ Funcionalidades
-
-### 🚨 Alertas Zabbix
-- Recebe alertas via API REST protegida
-- Formatação automática de mensagens
-- Sanitização de conteúdo para WhatsApp
-- Retry automático com backoff exponencial
 
 ### 💬 Assistente Inteligente
 - **Menu estruturado** com navegação por categorias
@@ -28,7 +22,7 @@ Bot WhatsApp profissional que recebe alertas do Zabbix e envia para grupo espec�
 
 ### 🔧 Arquitetura Robusta
 - **Logs estruturados** com Pino (JSON em produção, colorido em dev)
-- **Autenticação por token** no endpoint `/zabbix`
+- **API REST** para integração
 - **Healthcheck** em `/health` para monitoramento
 - **Configuração centralizada** via variáveis de ambiente
 - **Tratamento de erros** robusto em todas as camadas
@@ -57,7 +51,7 @@ npm run setup
 
 Ou configure manualmente criando o arquivo `.env`:
 ```bash
-# Configuração do Zabbix WhatsApp Bot
+# Configuração do Voetur WhatsApp Bot
 GROUP_ID=seu_group_id_aqui@g.us
 
 # Configuração da API
@@ -99,7 +93,6 @@ npm start               # Apenas o bot (simples)
 **Comandos úteis:**
 ```bash
 npm run test:health    # Testa se o serviço está funcionando
-npm run test:zabbix    # Testa o endpoint do Zabbix
 npm run test:server    # Testa conectividade do servidor
 npm run test:cnpj      # Testa funcionalidade CNPJ
 npm run test:menu      # Testa sistema de menu
@@ -117,10 +110,6 @@ npm run clean          # Limpeza completa do projeto
 bash scripts/deploy-server.sh  # Deploy automatizado
 ```
 
-**Teste de integração Zabbix:**
-```bash
-npm run test:integration  # Testa integração completa
-```
 
 **Painel Web:**
 ```bash
@@ -128,43 +117,8 @@ npm run web:start  # Iniciar painel web
 npm run web:dev    # Modo desenvolvimento
 ```
 
-## 🔒 Segurança
-
-### Autenticação da API
-O endpoint `/zabbix` requer autenticação via Bearer token:
-
-```bash
-curl -X POST http://localhost:3000/zabbix \
-  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "subject": "Alerta Crítico",
-    "message": "Servidor indisponível há 5 minutos"
-  }'
-```
-
-### Configuração no Zabbix
-Configure o Zabbix para enviar alertas para:
-- **URL**: `http://10.168.217.43:3000/zabbix`
-- **Método**: POST
-- **Headers**: `Authorization: Bearer SEU_TOKEN`
-- **Content-Type**: `application/json`
-
-### Exemplo de Configuração no Zabbix
-```bash
-# Teste manual do endpoint
-curl -X POST http://10.168.217.43:3000/zabbix \
-  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "subject": "Alerta Crítico - Teste",
-    "message": "Servidor indisponível há 5 minutos"
-  }'
-```
-
-## 📊 Monitoramento
-
 ### Healthcheck
+O endpoint `/health` retorna o status do sistema:
 ```bash
 curl http://localhost:3000/health
 # Resposta: {"status":"ok","whatsapp":true}
@@ -226,40 +180,20 @@ npm run pm2:logs
 │   ├── menuButtons.js     # Botões interativos (legacy)
 │   └── menuNavigation.js  # Sistema de navegação por números
 ├── scripts/
-│   ├── test-zabbix.js           # Script de teste básico
 │   ├── test-server.js           # Teste de conectividade
-│   ├── test-zabbix-integration.js # Teste integração Zabbix
 │   ├── test-cnpj.js             # Teste funcionalidade CNPJ
 │   ├── test-menu.js             # Teste sistema de menu
+│   ├── test-web-panel.sh        # Teste painel web
+│   ├── test-user-management.sh  # Teste gerenciamento usuários
 │   └── deploy-server.sh         # Deploy automatizado
 ├── docs/
-│   ├── zabbix-config.md         # Configuração do Zabbix
-│   ├── zabbix-media-type-script.js # Script do Media Type
-│   └── zabbix-message-templates.md # Templates de mensagem
+│   ├── web-admin-guide.md       # Guia do painel web
+│   └── user-management-guide.md # Guia gerenciamento usuários
 ├── index.js               # Arquivo principal
 ├── firstMessage.js        # Mensagem de boas-vindas
 ├── setup.js              # Configuração interativa
 ├── validate-config.js     # Validador de configuração
 └── ecosystem.config.js    # Configuração PM2
-```
-
-## 📊 Configuração do Zabbix
-
-### Informações da Integração:
-- **Servidor Zabbix**: `10.1.50.31`
-- **WhatsApp Bot**: `10.168.217.43:3000`
-- **Media Type**: WhatsApp Bot
-- **Action**: Envio WhatsApp – Problemas High/Disaster
-- **Usuário**: ti_alerts_group
-
-### Documentação Completa:
-- 📖 **Configuração**: `docs/zabbix-config.md`
-- 🔧 **Script Media Type**: `docs/zabbix-media-type-script.js`
-- 📝 **Templates**: `docs/zabbix-message-templates.md`
-
-### Teste Rápido:
-```bash
-npm run test:integration  # Testa todos os cenários de alerta
 ```
 
 ## 🏢 Funcionalidade CNPJ
@@ -401,10 +335,4 @@ npm run web:start                  # Inicia o painel
 
 ## 👨‍💻 Desenvolvedor
 
-**Desenvolvido pelo Analista Kaique Rodrigues**
-
-Sistema de alertas Zabbix via WhatsApp com painel web de administração completo.
-
-## 📝 Licença
-
-Este projeto está sob a licença ISC.
+**Desenvolvido pelo Analista Kaique# 

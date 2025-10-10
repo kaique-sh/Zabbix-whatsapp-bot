@@ -47,17 +47,48 @@ app.use(helmet({
 
 app.use(cors());
 
-// Rate limiting geral
+// Rate limiting geral (mais flexível)
 const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // máximo 100 requests por IP
+  windowMs: 5 * 60 * 1000, // 5 minutos
+  max: 500, // máximo 500 requests por IP
   message: {
     success: false,
-    message: 'Muitas requisições. Tente novamente em 15 minutos.'
+    message: 'Muitas requisições. Tente novamente em alguns minutos.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limiting específico para APIs de dados (mais permissivo)
+const dataLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minuto
+  max: 100, // máximo 100 requests por minuto
+  message: {
+    success: false,
+    message: 'Muitas requisições de dados. Aguarde um momento.'
   }
 });
 
+// Rate limiting para autenticação (mais restritivo)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 10, // máximo 10 tentativas de login por IP
+  message: {
+    success: false,
+    message: 'Muitas tentativas de login. Tente novamente em 15 minutos.'
+  }
+});
+
+// Aplicar rate limiting geral
 app.use('/api', generalLimiter);
+
+// Aplicar rate limiting específico para dados
+app.use('/api/bot/stats', dataLimiter);
+app.use('/api/bot/health', dataLimiter);
+app.use('/api/bot/status', dataLimiter);
+
+// Aplicar rate limiting para autenticação
+app.use('/api/auth/login', authLimiter);
 
 // Middlewares
 app.use(express.json({ limit: '10mb' }));
@@ -67,10 +98,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Rotas da API
+console.log('📋 Registrando rotas da API...');
 app.use('/api/auth', authRoutes);
+console.log('✅ Rotas de auth registradas');
 app.use('/api/bot', botControlRoutes);
+console.log('✅ Rotas de bot registradas');
 app.use('/api/commands', commandsRoutes);
+console.log('✅ Rotas de commands registradas');
 app.use('/api/settings', settingsRoutes);
+console.log('✅ Rotas de settings registradas');
 
 // Rota principal - servir o dashboard
 app.get('/', (req, res) => {
@@ -84,6 +120,10 @@ app.get('/dashboard*', (req, res) => {
 
 app.get('/commands*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'commands.html'));
+});
+
+app.get('/users*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'users.html'));
 });
 
 app.get('/settings*', (req, res) => {

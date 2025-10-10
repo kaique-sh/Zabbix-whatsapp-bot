@@ -13,22 +13,18 @@ const API_TOKEN = process.env.API_TOKEN;
 
 const testPayload = {
   subject: 'Teste de Conectividade - Servidor',
-  message: `Teste realizado em ${new Date().toLocaleString('pt-BR')}\n\nServidor: ${SERVER_IP}\nPorta: ${PORT}\n\nTeste de conectividade e envio de alertas do Zabbix WhatsApp Bot.`
+  message: `Teste realizado em ${new Date().toLocaleString('pt-BR')}\n\nServidor: ${SERVER_IP}\nPorta: ${PORT}\n\nTeste de conectividade do Voetur WhatsApp Bot.`
 };
 
 function makeRequest(host = SERVER_IP) {
   return new Promise((resolve, reject) => {
-    const postData = JSON.stringify(testPayload);
-    
     const options = {
       hostname: host,
       port: PORT,
-      path: '/zabbix',
-      method: 'POST',
+      path: '/health',
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData),
-        ...(API_TOKEN && { 'Authorization': `Bearer ${API_TOKEN}` })
+        'Content-Type': 'application/json'
       },
       timeout: 30000 // 30 segundos de timeout
     };
@@ -58,7 +54,6 @@ function makeRequest(host = SERVER_IP) {
       reject(new Error('Request timeout'));
     });
 
-    req.write(postData);
     req.end();
   });
 }
@@ -140,20 +135,14 @@ async function testNetworkConnectivity() {
 }
 
 async function main() {
-  console.log('🧪 Iniciando testes do Zabbix WhatsApp Bot - Servidor\n');
-  console.log(`🖥️  Servidor: ${SERVER_IP}:${PORT}`);
-  console.log(`🔐 Token configurado: ${API_TOKEN ? 'SIM' : 'NÃO'}\n`);
-  
-  const results = await testNetworkConnectivity();
-  
-  console.log('\n📋 Resumo dos testes:');
-  console.log('='.repeat(50));
   
   console.log('\n🏠 LOCALHOST:');
   console.log(`  Healthcheck: ${results.localhost.health ? '✅ OK' : '❌ FALHOU'}`);
   console.log(`  Endpoint Zabbix: ${results.localhost.zabbix ? '✅ OK' : '❌ FALHOU'}`);
   console.log(`  WhatsApp: ${results.localhost.health?.whatsapp ? '✅ CONECTADO' : '❌ DESCONECTADO'}`);
   
+  console.log(`\n🖥️  Servidor: ${SERVER_IP}:${PORT}`);
+  console.log(`🔐 Token configurado: ${API_TOKEN ? 'SIM' : 'NÃO'}\n`);
   console.log(`\n🖥️  SERVIDOR (${SERVER_IP}):`);
   console.log(`  Healthcheck: ${results.server.health ? '✅ OK' : '❌ FALHOU'}`);
   console.log(`  Endpoint Zabbix: ${results.server.zabbix ? '✅ OK' : '❌ FALHOU'}`);

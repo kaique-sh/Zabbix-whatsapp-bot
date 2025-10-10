@@ -17,28 +17,14 @@ function sanitizeText(text) {
 }
 
 /**
- * Formata mensagem de alerta do Zabbix
- * @param {string} subject - Assunto do alerta
- * @param {string} message - Mensagem do alerta
- * @returns {string} - Mensagem formatada
- */
-function formatZabbixAlert(subject, message) {
-  const sanitizedSubject = sanitizeText(subject);
-  const sanitizedMessage = sanitizeText(message);
-  
-  return `🚨 *${sanitizedSubject}*\n\n${sanitizedMessage}`;
-}
-
-/**
  * Valida se um ID de grupo WhatsApp está no formato correto
  * @param {string} groupId - ID do grupo
  * @returns {boolean} - True se válido
  */
 function isValidGroupId(groupId) {
   if (!groupId || typeof groupId !== 'string') return false;
-  return groupId.includes('@g.us') && groupId.length > 10;
+  return groupId.endsWith('@g.us') && groupId.length > 10;
 }
-
 /**
  * Gera timestamp formatado para logs
  * @returns {string} - Timestamp formatado
@@ -125,7 +111,6 @@ async function sendMessageSafely(client, chatId, message) {
 
 module.exports = {
   sanitizeText,
-  formatZabbixAlert,
   isValidGroupId,
   getFormattedTimestamp,
   delay,

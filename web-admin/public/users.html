@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Usuários - Voetur Bot</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="theme-color" content="#667eea">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            color: #666;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card h3 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .users-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .users-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .role-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .role-admin {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .role-user {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .role-viewer {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .close {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .users-table {
+                font-size: 0.9rem;
+            }
+
+            .users-table th,
+            .users-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1><i class="fas fa-users"></i> Gerenciar Usuários</h1>
+        <div class="nav-links">
+            <a href="/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/commands.html"><i class="fas fa-terminal"></i> Comandos</a>
+            <a href="/users.html" class="active"><i class="fas fa-users"></i> Usuários</a>
+            <a href="/settings.html"><i class="fas fa-cog"></i> Configurações</a>
+        </div>
+        <div class="user-info">
+            <span id="userInfo">Carregando...</span>
+            <button class="btn btn-sm" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Sair
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Alerta -->
+        <div id="alert" class="alert"></div>
+
+        <!-- Formulário de Novo Usuário -->
+        <div class="card">
+            <h3><i class="fas fa-user-plus"></i> Adicionar Novo Usuário</h3>
+            <form id="registerForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="username">Nome de Usuário</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">Senha</label>
+                        <input type="password" id="password" name="password" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Função</label>
+                        <select id="role" name="role" required>
+                            <option value="user">Usuário</option>
+                            <option value="admin">Administrador</option>
+                            <option value="viewer">Visualizador</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Adicionar Usuário
+                </button>
+            </form>
+        </div>
+
+        <!-- Lista de Usuários -->
+        <div class="card">
+            <h3><i class="fas fa-list"></i> Lista de Usuários</h3>
+            <div id="usersContainer">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Carregando usuários...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Usuário</h3>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editUserId">
+                <div class="form-group">
+                    <label for="editUsername">Nome de Usuário</label>
+                    <input type="text" id="editUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="editRole">Função</label>
+                    <select id="editRole" required>
+                        <option value="user">Usuário</option>
+                        <option value="admin">Administrador</option>
+                        <option value="viewer">Visualizador</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editActive">Status</label>
+                    <select id="editActive" required>
+                        <option value="1">Ativo</option>
+                        <option value="0">Inativo</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn" onclick="closeEditModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rodapé com informações do desenvolvedor -->
+    <footer style="background: white; padding: 1rem 2rem; margin-top: 2rem; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); text-align: center; color: #666;">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+            <i class="fas fa-code" style="color: #667eea;"></i>
+            <span>👨‍💻 <strong>Desenvolvedor:</strong> Desenvolvido pelo Analista Kaique Rodrigues</span>
+        </div>
+        <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #888;">
+            Voetur Bot - Sistema de Bot WhatsApp
+        </div>
+    </footer>
+
+    <script>
+        let authToken;
+        let users = [];
+
+        // Verificar autenticação
+        async function checkAuth() {
+            authToken = localStorage.getItem('authToken');
+            if (!authToken) {
+                window.location.href = '/';
+                return;
+            }
+
+            try {
+                const user = JSON.parse(localStorage.getItem('user'));
+                document.getElementById('userInfo').textContent = `Olá, ${user.username}`;
+                
+                // Verificar se é admin
+                if (user.role !== 'admin') {
+                    showAlert('Acesso negado. Apenas administradores podem gerenciar usuários.', 'danger');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 2000);
+                    return;
+                }
+            } catch (e) {
+                document.getElementById('userInfo').textContent = 'Usuário';
+            }
+
+            // Carregar usuários
+            await loadUsers();
+        }
+
+        // Carregar lista de usuários
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/auth/users', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    users = data.users;
+                    renderUsers();
+                } else {
+                    showAlert('Erro ao carregar usuários: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+                showAlert('Erro de conexão ao carregar usuários', 'danger');
+            }
+        }
+
+        // Renderizar lista de usuários
+        function renderUsers() {
+            const container = document.getElementById('usersContainer');
+            
+            if (users.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #666;">
+                        <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p>Nenhum usuário encontrado</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const table = `
+                <div class="table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Usuário</th>
+                                <th>Email</th>
+                                <th>Função</th>
+                                <th>Status</th>
+                                <th>Criado em</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${users.map(user => `
+                                <tr>
+                                    <td>
+                                        <strong>${user.username}</strong>
+                                        ${user.created_by_username ? `<br><small style="color: #666;">por ${user.created_by_username}</small>` : ''}
+                                    </td>
+                                    <td>${user.email}</td>
+                                    <td>
+                                        <span class="role-badge role-${user.role}">
+                                            ${getRoleLabel(user.role)}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">
+                                            ${user.is_active ? 'Ativo' : 'Inativo'}
+                                        </span>
+                                    </td>
+                                    <td>${formatDate(user.created_at)}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="editUser(${user.id})" style="margin-right: 0.5rem;">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        ${user.username !== 'admin' ? `
+                                            <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id}, '${user.username}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        ` : ''}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = table;
+        }
+
+        // Registrar novo usuário
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const userData = {
+                username: formData.get('username'),
+                email: formData.get('email'),
+                password: formData.get('password'),
+                role: formData.get('role')
+            };
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Usuário registrado com sucesso!', 'success');
+                    e.target.reset();
+                    await loadUsers();
+                } else {
+                    showAlert('Erro ao registrar usuário: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Erro ao registrar usuário:', error);
+                showAlert('Erro de conexão ao registrar usuário', 'danger');
+            }
+        });
+
+        // Editar usuário
+        function editUser(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('editUsername').value = user.username;
+            document.getElementById('editEmail').value = user.email;
+            document.getElementById('editRole').value = user.role;
+            document.getElementById('editActive').value = user.is_active ? '1' : '0';
+
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        // Fechar modal de edição
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Salvar edição
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const userId = document.getElementById('editUserId').value;
+            const userData = {
+                username: document.getElementById('editUsername').value,
+                email: document.getElementById('editEmail').value,
+                role: document.getElementById('editRole').value,
+                is_active: document.getElementById('editActive').value === '1'
+            };
+
+            try {
+                const response = await fetch(`/api/auth/users/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Usuário atualizado com sucesso!', 'success');
+                    closeEditModal();
+                    await loadUsers();
+                } else {
+                    showAlert('Erro ao atualizar usuário: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar usuário:', error);
+                showAlert('Erro de conexão ao atualizar usuário', 'danger');
+            }
+        });
+
+        // Deletar usuário
+        async function deleteUser(userId, username) {
+            if (!confirm(`Tem certeza que deseja deletar o usuário "${username}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/auth/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Usuário deletado com sucesso!', 'success');
+                    await loadUsers();
+                } else {
+                    showAlert('Erro ao deletar usuário: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Erro ao deletar usuário:', error);
+                showAlert('Erro de conexão ao deletar usuário', 'danger');
+            }
+        }
+
+        // Utilitários
+        function getRoleLabel(role) {
+            const labels = {
+                'admin': 'Administrador',
+                'user': 'Usuário',
+                'viewer': 'Visualizador'
+            };
+            return labels[role] || role;
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function showAlert(message, type = 'info') {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.display = 'block';
+
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Logout
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+            } catch (error) {
+                console.error('Erro no logout:', error);
+            }
+
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        }
+
+        // Inicializar quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+        });
+    </script>
+    
+</body>
+</html>

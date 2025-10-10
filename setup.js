@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Script de configuração automatizada do Zabbix WhatsApp Bot
+ * Script de configuração automatizada do Voetur WhatsApp Bot
  * Executa: node setup.js
  */
 
@@ -23,7 +23,7 @@ function generateSecureToken() {
 }
 
 async function setup() {
-  console.log('🤖 Configuração do Zabbix WhatsApp Bot - Voetur\n');
+  console.log('🤖 Configuração do Voetur WhatsApp Bot\n');
 
   const config = {};
 
@@ -56,7 +56,7 @@ async function setup() {
 
   // Gerar arquivo .env com comentários
   const envContent = [
-    '# Configuração do Zabbix WhatsApp Bot',
+    '# Configuração do Voetur WhatsApp Bot',
     `GROUP_ID=${config.GROUP_ID}`,
     '',
     '# Configuração da API',
@@ -92,18 +92,13 @@ async function setup() {
   console.log('3. npm start         # Iniciar bot');
   console.log('4. Escaneie o QR Code no WhatsApp');
   
-  console.log('\n🔒 Endpoint da API:');
-  console.log(`POST http://localhost:${config.PORT}/zabbix`);
-  console.log(`Authorization: Bearer ${config.API_TOKEN}`);
+  console.log('\n🔒 API Endpoints:');
+  console.log(`🏥 Health: GET http://localhost:${config.PORT}/health`);
+  console.log(`🌐 Painel: http://localhost:4000`);
   
-  console.log('\n🏥 Healthcheck:');
-  console.log(`GET http://localhost:${config.PORT}/health`);
-  
-  console.log('\n📝 Exemplo de payload para Zabbix:');
-  console.log(JSON.stringify({
-    subject: "Alerta Crítico",
-    message: "Servidor indisponível"
-  }, null, 2));
+  console.log('\n📝 Comandos disponíveis:');
+  console.log('!menu - Menu principal');
+  console.log('!cnpj [número] - Consulta CNPJ');
 
   rl.close();
 }

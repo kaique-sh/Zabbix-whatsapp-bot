@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'zabbix-whatsapp-bot',
+      name: 'voetur-whatsapp-bot',
       script: 'index.js',
       instances: 1,
       autorestart: true,
