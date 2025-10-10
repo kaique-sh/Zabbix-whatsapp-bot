@@ -1,0 +1,29 @@
+# Configuração do Zabbix WhatsApp Bot - PRODUÇÃO
+# Copie este arquivo para .env e configure os valores
+
+# OBRIGATÓRIO - ID do grupo WhatsApp
+GROUP_ID=seu_group_id_aqui@g.us
+
+# Configuração da API
+PORT=3000
+API_TOKEN=seu_token_seguro_aqui
+
+# Configuração do Puppeteer - PRODUÇÃO
+HEADLESS=true
+NODE_ENV=production
+
+# Personalização do Bot
+COMPANY_NAME=Voetur
+ASSISTANT_DISPLAY_NAME=VOETUR ASSISTENTE
+MENU_COMMAND=!menu
+CONTACT_NAME=Voetur Assistente
+
+# Configuração de Arquivos
+FIRST_MESSAGES_PATH=./firstMessages.json
+
+# Configurações de Log
+LOG_LEVEL=info
+
+# Configurações específicas do servidor
+# Descomente se necessário:
+# PUPPETEER_EXEC=/usr/bin/google-chrome-stable

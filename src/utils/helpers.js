@@ -57,13 +57,13 @@ function delay(ms) {
 }
 
 /**
- * Retry com backoff exponencial
+ * Retry com backoff exponencial - Melhorado para WhatsApp
  * @param {Function} fn - Função a ser executada
  * @param {number} maxRetries - Número máximo de tentativas
  * @param {number} baseDelay - Delay base em ms
  * @returns {Promise} - Resultado da função ou erro
  */
-async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
+async function retryWithBackoff(fn, maxRetries = 5, baseDelay = 2000) {
   let lastError;
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -72,14 +72,55 @@ async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
     } catch (error) {
       lastError = error;
       
+      // Log do erro para debugging
+      console.log(`Tentativa ${attempt}/${maxRetries} falhou:`, error.message);
+      
       if (attempt === maxRetries) {
         throw lastError;
       }
       
-      const delayMs = baseDelay * Math.pow(2, attempt - 1);
+      // Backoff exponencial com jitter para evitar thundering herd
+      const jitter = Math.random() * 1000;
+      const delayMs = (baseDelay * Math.pow(2, attempt - 1)) + jitter;
+      
+      console.log(`Aguardando ${Math.round(delayMs)}ms antes da próxima tentativa...`);
       await delay(delayMs);
     }
   }
+}
+
+/**
+ * Verifica se o cliente WhatsApp está pronto para enviar mensagens
+ * @param {Client} client - Cliente WhatsApp
+ * @returns {Promise<boolean>} - True se pronto
+ */
+async function isClientReady(client) {
+  try {
+    const state = await client.getState();
+    return state === 'CONNECTED';
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Envia mensagem com verificação de estado e retry
+ * @param {Client} client - Cliente WhatsApp
+ * @param {string} chatId - ID do chat
+ * @param {string} message - Mensagem a ser enviada
+ * @returns {Promise} - Resultado do envio
+ */
+async function sendMessageSafely(client, chatId, message) {
+  return retryWithBackoff(async () => {
+    // Verifica se o cliente está pronto
+    const ready = await isClientReady(client);
+    if (!ready) {
+      throw new Error('Cliente WhatsApp não está conectado');
+    }
+    
+    // Envia a mensagem
+    return await client.sendMessage(chatId, message);
+  }, 3, 3000);
 }
 
 module.exports = {
@@ -88,5 +129,7 @@ module.exports = {
   isValidGroupId,
   getFormattedTimestamp,
   delay,
-  retryWithBackoff
+  retryWithBackoff,
+  isClientReady,
+  sendMessageSafely
 };

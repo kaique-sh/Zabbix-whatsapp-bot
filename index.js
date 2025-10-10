@@ -15,12 +15,15 @@ const express = require('express');
 // Configurações centralizadas
 const logger = require('./src/config/logger');
 const { CONFIG, validateRequiredConfig } = require('./src/config/constants');
-const { formatZabbixAlert, retryWithBackoff } = require('./src/utils/helpers');
+const { formatZabbixAlert, sendMessageSafely, isClientReady } = require('./src/utils/helpers');
 
 // Handlers de mensagem
 const { handleFirstMessage } = require('./firstMessage');
 const { handleMenuCommand } = require('./menu/menuCommand');
 const { handleButtonResponse } = require('./menu/menuButtons');
+const { handleMenuNavigation } = require('./menu/menuNavigation');
+const { handleCNPJCommand } = require('./src/commands/cnpjCommand');
+const { handleCustomCommand } = require('./src/commands/customCommands');
 
 /* 3. Validação de configuração */
 try {
@@ -32,11 +35,22 @@ try {
 
 /* 4. WhatsApp client */
 const client = new Client({
-  authStrategy: new LocalAuth({ dataPath: CONFIG.AUTH_DATA_PATH }),
+  authStrategy: new LocalAuth({ 
+    dataPath: CONFIG.AUTH_DATA_PATH,
+    clientId: 'zabbix-whatsapp-bot'
+  }),
   puppeteer: {
     headless: CONFIG.HEADLESS,
     args: CONFIG.PUPPETEER_ARGS,
-    executablePath: CONFIG.PUPPETEER_EXEC
+    executablePath: CONFIG.PUPPETEER_EXEC,
+    timeout: 60000,
+    handleSIGINT: false,
+    handleSIGTERM: false,
+    handleSIGHUP: false
+  },
+  webVersionCache: {
+    type: 'remote',
+    remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html'
   }
 });
 
@@ -63,6 +77,52 @@ client.on('auth_failure', msg => {
   logger.error({ msg }, 'Falha na autenticação do WhatsApp');
 });
 
+client.on('loading_screen', (percent, message) => {
+  logger.info({ percent, message }, 'WhatsApp carregando');
+});
+
+client.on('authenticated', () => {
+  logger.info('WhatsApp autenticado com sucesso');
+});
+
+client.on('change_state', state => {
+  logger.info({ state }, 'Estado do WhatsApp alterado');
+});
+
+// Tratamento de erros críticos
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error({ reason, promise }, 'Unhandled Rejection detectado');
+});
+
+process.on('uncaughtException', (error) => {
+  logger.error({ error }, 'Uncaught Exception detectado');
+  // Não fazer exit imediatamente, tentar graceful shutdown
+  setTimeout(() => process.exit(1), 5000);
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  logger.info('SIGINT recebido, encerrando graciosamente...');
+  try {
+    await client.destroy();
+    logger.info('Cliente WhatsApp encerrado');
+  } catch (error) {
+    logger.error({ error }, 'Erro ao encerrar cliente WhatsApp');
+  }
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM recebido, encerrando graciosamente...');
+  try {
+    await client.destroy();
+    logger.info('Cliente WhatsApp encerrado');
+  } catch (error) {
+    logger.error({ error }, 'Erro ao encerrar cliente WhatsApp');
+  }
+  process.exit(0);
+});
+
 /* 6. Handler único de mensagens */
 client.on('message', async message => {
   try {
@@ -77,6 +137,26 @@ client.on('message', async message => {
     if (body.toLowerCase() === CONFIG.MENU_COMMAND.toLowerCase()) {
       logger.info({ from: message.from }, `Comando ${CONFIG.MENU_COMMAND} recebido`);
       await handleMenuCommand(message, client);
+      return;
+    }
+
+    /* comando !cnpj */
+    if (body.toLowerCase().startsWith('!cnpj')) {
+      const processedCNPJ = await handleCNPJCommand(message, client);
+      if (processedCNPJ) {
+        return;
+      }
+    }
+
+    /* navegação do menu (números 1-4) */
+    const processedNavigation = await handleMenuNavigation(message, client);
+    if (processedNavigation) {
+      return;
+    }
+
+    /* comandos customizados */
+    const processedCustom = await handleCustomCommand(message, client);
+    if (processedCustom) {
       return;
     }
 
@@ -126,9 +206,14 @@ app.post('/zabbix', authenticate, async (req, res) => {
       logger.error('GROUP_ID não configurado');
       return res.status(500).json({ error: 'GROUP_ID não configurado' });
     }
-    if (!isReady) {
-      logger.warn('Cliente WhatsApp não está pronto');
-      return res.status(503).json({ error: 'Cliente WhatsApp não está pronto' });
+    // Verificação mais robusta do estado do cliente
+    const clientReady = await isClientReady(client);
+    if (!isReady || !clientReady) {
+      logger.warn({ isReady, clientReady }, 'Cliente WhatsApp não está pronto');
+      return res.status(503).json({ 
+        error: 'Cliente WhatsApp não está pronto',
+        details: { isReady, clientReady }
+      });
     }
 
     const { subject, message } = req.body || {};
@@ -141,10 +226,9 @@ app.post('/zabbix', authenticate, async (req, res) => {
     }
 
     const text = formatZabbixAlert(subject, message);
-    await retryWithBackoff(
-      () => client.sendMessage(CONFIG.GROUP_ID, text),
-      CONFIG.MAX_RETRIES
-    );
+    
+    // Usar função de envio seguro com retry automático
+    await sendMessageSafely(client, CONFIG.GROUP_ID, text);
     
     const duration = Date.now() - startTime;
     logger.info({ subject, duration }, 'Alerta Zabbix enviado com sucesso');

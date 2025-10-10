@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - Voetur Bot</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            color: #666;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .main-content {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+        }
+
+        .settings-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .settings-table th,
+        .settings-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .settings-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .settings-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .env-var {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+        }
+
+        .env-var code {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+            font-size: 2rem;
+            color: #667eea;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .backup-section {
+            border-top: 1px solid #eee;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-label:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-robot"></i> Voetur Bot - Configurações</h1>
+        <div class="nav-links">
+            <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/commands"><i class="fas fa-terminal"></i> Comandos</a>
+            <a href="/settings" class="active"><i class="fas fa-cog"></i> Configurações</a>
+            <button class="btn btn-danger" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Sair
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div id="alert" class="alert hidden"></div>
+
+        <div class="settings-grid">
+            <!-- Configurações do Sistema -->
+            <div class="card">
+                <h3><i class="fas fa-cogs"></i> Configurações do Sistema</h3>
+                <div id="systemSettings">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Carregando configurações...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Variáveis de Ambiente -->
+            <div class="card">
+                <h3><i class="fas fa-server"></i> Variáveis de Ambiente</h3>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Atenção:</strong> Reinicie o bot após alterar variáveis de ambiente.
+                </div>
+                <div id="envVariables">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Carregando variáveis...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup e Restauração -->
+            <div class="card">
+                <h3><i class="fas fa-download"></i> Backup e Restauração</h3>
+                
+                <div class="form-group">
+                    <label>Fazer Backup das Configurações</label>
+                    <button class="btn btn-primary" onclick="downloadBackup()">
+                        <i class="fas fa-download"></i> Baixar Backup
+                    </button>
+                </div>
+
+                <div class="backup-section">
+                    <div class="form-group">
+                        <label>Restaurar Configurações</label>
+                        <input type="file" id="backupFile" class="file-input" accept=".json" onchange="handleBackupFile(event)">
+                        <label for="backupFile" class="file-label">
+                            <i class="fas fa-upload"></i> Selecionar Arquivo de Backup
+                        </label>
+                    </div>
+                    
+                    <button class="btn btn-success hidden" id="restoreBtn" onclick="restoreBackup()">
+                        <i class="fas fa-upload"></i> Restaurar Backup
+                    </button>
+                </div>
+            </div>
+
+            <!-- Informações do Sistema -->
+            <div class="card">
+                <h3><i class="fas fa-info-circle"></i> Informações do Sistema</h3>
+                
+                <div class="env-var">
+                    <span><strong>Versão do Bot:</strong></span>
+                    <code>v1.0.0</code>
+                </div>
+                
+                <div class="env-var">
+                    <span><strong>Node.js:</strong></span>
+                    <code id="nodeVersion">Carregando...</code>
+                </div>
+                
+                <div class="env-var">
+                    <span><strong>Painel Web:</strong></span>
+                    <code>v1.0.0</code>
+                </div>
+                
+                <div class="env-var">
+                    <span><strong>Última Atualização:</strong></span>
+                    <code id="lastUpdate">Carregando...</code>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <button class="btn btn-secondary" onclick="checkUpdates()">
+                        <i class="fas fa-sync"></i> Verificar Atualizações
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken;
+        let settings = [];
+        let envVars = {};
+        let backupData = null;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async () => {
+            authToken = localStorage.getItem('authToken');
+            if (!authToken) {
+                window.location.href = '/';
+                return;
+            }
+
+            await Promise.all([
+                loadSystemSettings(),
+                loadEnvVariables(),
+                loadSystemInfo()
+            ]);
+        });
+
+        // Carregar configurações do sistema
+        async function loadSystemSettings() {
+            try {
+                const response = await fetch('/api/settings', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    settings = data.settings;
+                    renderSystemSettings();
+                } else {
+                    document.getElementById('systemSettings').innerHTML = 
+                        '<p style="color: #dc3545;">Erro ao carregar configurações</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar configurações:', error);
+                document.getElementById('systemSettings').innerHTML = 
+                    '<p style="color: #dc3545;">Erro de conexão</p>';
+            }
+        }
+
+        // Carregar variáveis de ambiente
+        async function loadEnvVariables() {
+            try {
+                const response = await fetch('/api/settings/env', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    envVars = data.env;
+                    renderEnvVariables();
+                } else {
+                    document.getElementById('envVariables').innerHTML = 
+                        '<p style="color: #dc3545;">Erro ao carregar variáveis</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar variáveis:', error);
+                document.getElementById('envVariables').innerHTML = 
+                    '<p style="color: #dc3545;">Erro de conexão</p>';
+            }
+        }
+
+        // Renderizar configurações do sistema
+        function renderSystemSettings() {
+            const container = document.getElementById('systemSettings');
+
+            if (settings.length === 0) {
+                container.innerHTML = '<p style="color: #666;">Nenhuma configuração encontrada</p>';
+                return;
+            }
+
+            const table = `
+                <table class="settings-table">
+                    <thead>
+                        <tr>
+                            <th>Chave</th>
+                            <th>Valor</th>
+                            <th>Descrição</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${settings.map(setting => `
+                            <tr>
+                                <td><code>${setting.key}</code></td>
+                                <td>
+                                    <input type="text" value="${setting.value}" 
+                                           onchange="updateSetting('${setting.key}', this.value)"
+                                           style="border: 1px solid #ddd; padding: 0.25rem; border-radius: 3px; width: 100%;">
+                                </td>
+                                <td>${setting.description || '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = table;
+        }
+
+        // Renderizar variáveis de ambiente
+        function renderEnvVariables() {
+            const container = document.getElementById('envVariables');
+
+            if (Object.keys(envVars).length === 0) {
+                container.innerHTML = '<p style="color: #666;">Nenhuma variável encontrada</p>';
+                return;
+            }
+
+            const varsHtml = Object.entries(envVars).map(([key, value]) => `
+                <div class="env-var">
+                    <code>${key}</code>
+                    <span>${value === '***masked***' ? value : `"${value}"`}</span>
+                </div>
+            `).join('');
+
+            container.innerHTML = varsHtml;
+        }
+
+        // Carregar informações do sistema
+        async function loadSystemInfo() {
+            document.getElementById('nodeVersion').textContent = 'Node.js ' + (process?.version || 'N/A');
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('pt-BR');
+        }
+
+        // Atualizar configuração
+        async function updateSetting(key, value) {
+            try {
+                const response = await fetch(`/api/settings/${key}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ value })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Configuração atualizada com sucesso', 'success');
+                } else {
+                    showAlert(data.message, 'danger');
+                    await loadSystemSettings(); // Recarregar para reverter
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar configuração:', error);
+                showAlert('Erro ao atualizar configuração', 'danger');
+                await loadSystemSettings(); // Recarregar para reverter
+            }
+        }
+
+        // Fazer backup
+        async function downloadBackup() {
+            try {
+                const response = await fetch('/api/settings/backup', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `voetur-bot-backup-${Date.now()}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    showAlert('Backup baixado com sucesso', 'success');
+                } else {
+                    showAlert('Erro ao gerar backup', 'danger');
+                }
+            } catch (error) {
+                console.error('Erro ao fazer backup:', error);
+                showAlert('Erro ao fazer backup', 'danger');
+            }
+        }
+
+        // Lidar com arquivo de backup
+        function handleBackupFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    backupData = JSON.parse(e.target.result);
+                    document.getElementById('restoreBtn').classList.remove('hidden');
+                    showAlert('Arquivo de backup carregado. Clique em "Restaurar Backup" para continuar.', 'success');
+                } catch (error) {
+                    showAlert('Arquivo de backup inválido', 'danger');
+                    backupData = null;
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Restaurar backup
+        async function restoreBackup() {
+            if (!backupData) {
+                showAlert('Nenhum arquivo de backup selecionado', 'danger');
+                return;
+            }
+
+            if (!confirm('Tem certeza que deseja restaurar o backup? Isso substituirá as configurações atuais.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/settings/restore', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ backup: backupData })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Backup restaurado com sucesso', 'success');
+                    document.getElementById('restoreBtn').classList.add('hidden');
+                    document.getElementById('backupFile').value = '';
+                    backupData = null;
+                    
+                    // Recarregar configurações
+                    await loadSystemSettings();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Erro ao restaurar backup:', error);
+                showAlert('Erro ao restaurar backup', 'danger');
+            }
+        }
+
+        // Verificar atualizações
+        function checkUpdates() {
+            showAlert('Sistema atualizado. Versão atual: v1.0.0', 'success');
+        }
+
+        // Logout
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+            } catch (error) {
+                console.error('Erro no logout:', error);
+            }
+
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+
+        // Mostrar alerta
+        function showAlert(message, type = 'info') {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.classList.remove('hidden');
+
+            setTimeout(() => {
+                alert.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

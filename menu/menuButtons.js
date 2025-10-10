@@ -17,6 +17,7 @@ function buildMenuList(recipient) {
         title: 'Serviços Disponíveis',
         rows: [
           { id: 'menu_chamado',  title: '🔗 Abrir chamado' },
+          { id: 'menu_cnpj',     title: '🏢 Consulta CNPJ' },
           { id: 'menu_infra',    title: '📞 Analistas de Infra' },
           { id: 'menu_sistemas', title: '💻 Analistas de Sistemas' }
         ]
@@ -28,6 +29,8 @@ function buildMenuList(recipient) {
 const menuAnswers = {
   menu_chamado:
     'Aqui está o link para abrir um chamado:\nhttps://suporte.voetur.com.br/support/home',
+  menu_cnpj:
+    '🏢 *Consulta CNPJ*\n\n📋 *Como usar*:\nDigite: !cnpj [número do CNPJ]\n\n💡 *Exemplo*:\n!cnpj 27865757000102\n\nℹ️ *Informações retornadas*:\n• Razão Social\n• Nome Fantasia\n• Situação Cadastral\n• CNAE Principal\n• Endereço Completo\n• E muito mais!',
   menu_infra:
     'Aqui estão os números dos analistas de infraestrutura:\n' +
     '📞 Kaique: (61) 9261-9515\n' +
