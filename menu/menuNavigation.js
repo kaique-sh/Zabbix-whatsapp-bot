@@ -11,10 +11,11 @@ const subMenus = {
     title: '🛠️ SERVIÇOS',
     content: `*🛠️ SERVIÇOS DISPONÍVEIS*
 
-*🔗 Abertura de Chamados*
-• Acesse: https://suporte.voetur.com.br/support/home
-• Suporte técnico 24h
-• Acompanhamento de tickets
+*🎫 Abertura de Chamados*
+• Digite: *!atendimento*
+• Exemplo: !atendimento
+• Cria ticket automaticamente no Freshservice
+• Grupo: VTCLOG - TI
 
 *🏢 Consulta CNPJ*
 • Digite: *!cnpj [número]*
@@ -25,6 +26,11 @@ const subMenus = {
 • Problemas de infraestrutura
 • Questões de sistemas
 • Emergências técnicas
+
+*💡 Comandos Disponíveis*
+• *!atendimento* - Criar chamado
+• *!cnpj* - Consultar empresa
+• *!menu* - Voltar ao menu
 
 ---
 💡 *Digite !menu para voltar ao menu principal*
@@ -64,8 +70,15 @@ const subMenus = {
 
 *📋 Comandos Básicos*
 • *!menu* - Exibir menu principal
+• *!atendimento* - Criar chamado no Freshservice
 • *!cnpj [número]* - Consultar CNPJ
 • *1, 2, 3, 4* - Navegar no menu
+
+*🎫 Comando de Atendimento*
+• *!atendimento* - Inicia criação de ticket
+• Cria chamado automaticamente
+• Grupo: VTCLOG - TI
+• Exemplo: !atendimento
 
 *🏢 Consulta CNPJ*
 • *!cnpj 27865757000102*
@@ -73,9 +86,9 @@ const subMenus = {
 • *!cnpj* (para ajuda)
 
 *💡 Exemplos Práticos*
+• Digite *!atendimento* para suporte
 • Digite *!cnpj 33000167000001* (Petrobras)
 • Digite *1* para ver serviços
-• Digite *2* para ver contatos
 
 *🔧 Dicas de Uso*
 • Use números sem formatação no CNPJ
@@ -104,8 +117,8 @@ const subMenus = {
 
 *🔍 Funcionalidades*
 • Consulta CNPJ em tempo real
+• Abertura automática de chamados
 • Contatos da equipe técnica
-• Links para abertura de chamados
 • Suporte 24 horas
 
 *💡 Dicas Importantes*

@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'voetur-whatsapp-bot',
+      name: 'nextbot-whatsapp-bot',
       script: 'index.js',
       instances: 1,
       autorestart: true,
@@ -30,7 +30,7 @@ module.exports = {
       health_check_grace_period: 3000
     },
     {
-      name: 'voetur-web-admin',
+      name: 'nextbot-web-admin',
       script: 'web-admin/server.js',
       instances: 1,
       autorestart: true,

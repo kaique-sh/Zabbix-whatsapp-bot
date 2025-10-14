@@ -17,8 +17,11 @@ const { authenticateToken } = require('./middleware/auth');
 // Importar rotas
 const authRoutes = require('./routes/auth');
 const botControlRoutes = require('./routes/bot-control');
-const commandsRoutes = require('./routes/commands');
 const settingsRoutes = require('./routes/settings');
+const botsRoutes = require('./routes/bots');
+const terminalRoutes = require('./routes/terminal');
+const terminalPtyRoutes = require('./routes/terminalPty');
+const statsRoutes = require('./routes/stats');
 
 const app = express();
 const server = http.createServer(app);
@@ -36,7 +39,8 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdnjs.cloudflare.com"],
       scriptSrcAttr: ["'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
@@ -103,10 +107,16 @@ app.use('/api/auth', authRoutes);
 console.log('✅ Rotas de auth registradas');
 app.use('/api/bot', botControlRoutes);
 console.log('✅ Rotas de bot registradas');
-app.use('/api/commands', commandsRoutes);
-console.log('✅ Rotas de commands registradas');
 app.use('/api/settings', settingsRoutes);
 console.log('✅ Rotas de settings registradas');
+app.use('/api/bots', botsRoutes);
+console.log('✅ Rotas de bots registradas');
+app.use('/api/terminal', terminalRoutes);
+console.log('✅ Rotas de terminal registradas');
+app.use('/api/terminal-pty', terminalPtyRoutes);
+console.log('✅ Rotas de terminal PTY registradas');
+app.use('/api/stats', statsRoutes);
+console.log('✅ Rotas de estatísticas registradas');
 
 // Rota principal - servir o dashboard
 app.get('/', (req, res) => {
@@ -118,16 +128,16 @@ app.get('/dashboard*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
-app.get('/commands*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'commands.html'));
-});
-
 app.get('/users*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'users.html'));
 });
 
 app.get('/settings*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'settings.html'));
+});
+
+app.get('/terminal*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'terminal.html'));
 });
 
 // Middleware de erro
@@ -189,6 +199,11 @@ async function startServer() {
     await initDatabase();
     console.log('✅ Banco de dados inicializado');
 
+    // Inicializar handler WebSocket para terminal
+    const TerminalSocketHandler = require('./services/terminalSocket');
+    new TerminalSocketHandler(io);
+    console.log('✅ Terminal WebSocket inicializado');
+
     // Iniciar servidor
     server.listen(PORT, () => {
       console.log('🌐 Painel de Administração Web iniciado');
@@ -206,6 +221,12 @@ async function startServer() {
 // Graceful shutdown
 process.on('SIGINT', () => {
   console.log('\n🔄 Encerrando painel de administração...');
+  
+  // Destruir todas as sessões de terminal
+  const terminalManager = require('./services/terminalManager');
+  const count = terminalManager.destroyAll();
+  console.log(`✅ ${count} sessões de terminal encerradas`);
+  
   server.close(() => {
     console.log('✅ Servidor encerrado');
     process.exit(0);

@@ -4,6 +4,7 @@
 
 const logger = require('../config/logger');
 const { consultarCNPJ } = require('../services/cnpjService');
+const { logCnpjQuery, logCommand, logMessageSent } = require('../utils/statsLogger');
 
 /**
  * Processa comando !cnpj
@@ -62,6 +63,11 @@ async function handleCNPJCommand(message, client) {
     
     // Enviar resultado
     await client.sendMessage(message.from, resultado);
+    
+    // Registrar estatísticas
+    logCommand(); // Comando executado
+    logCnpjQuery(); // Consulta CNPJ
+    logMessageSent(); // Mensagem enviada (resposta)
     
     logger.info({ 
       from: message.from, 

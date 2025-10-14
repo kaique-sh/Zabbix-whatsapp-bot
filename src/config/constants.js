@@ -14,7 +14,7 @@ const CONFIG = {
   API_TOKEN: process.env.API_TOKEN,
   
   // Personalização
-  COMPANY_NAME: process.env.COMPANY_NAME || 'Voetur',
+  COMPANY_NAME: process.env.COMPANY_NAME || 'NextBot Solutions',
   ASSISTANT_DISPLAY_NAME: process.env.ASSISTANT_DISPLAY_NAME || 'VOETUR ASSISTENTE',
   MENU_COMMAND: process.env.MENU_COMMAND || '!menu',
   CONTACT_NAME: process.env.CONTACT_NAME || 'Voetur Assistente',

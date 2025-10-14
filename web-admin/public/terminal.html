@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>Terminal - NextBot Solutions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/nextbot-theme.css">
+    <meta name="theme-color" content="#FF6B00">
+</head>
+<body class="terminal-page">
+    <!-- Header -->
+    <div class="header">
+        <h1><i class="fas fa-terminal logo-icon"></i> Terminal & Gerenciamento de Bots</h1>
+        <div class="nav-links">
+            <a href="/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/users.html" id="usersMenuLink" style="display: none;"><i class="fas fa-users"></i> Usuários</a>
+            <a href="/terminal.html" class="active"><i class="fas fa-code"></i> Terminal</a>
+            <a href="/settings.html"><i class="fas fa-cog"></i> Configurações</a>
+        </div>
+        <div class="user-info">
+            <span id="userInfo">Carregando...</span>
+            <button class="btn btn-danger" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Sair
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div id="alert" class="alert hidden"></div>
+
+        <!-- Grid Principal -->
+        <div class="terminal-grid">
+            <!-- Gerenciamento de Bots -->
+            <div class="card">
+                <div class="card-header-custom">
+                    <h3><i class="fas fa-robot"></i> Gerenciamento de Bots</h3>
+                    <button class="btn btn-primary" onclick="openAddBotModal()">
+                        <i class="fas fa-plus"></i> Adicionar Bot
+                    </button>
+                </div>
+
+                <div class="bots-list" id="botsList">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        Carregando bots...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terminal Interativo -->
+            <div class="card terminal-card">
+                <div class="card-header-custom">
+                    <h3><i class="fas fa-terminal"></i> Terminal Interativo</h3>
+                    <div class="terminal-controls">
+                        <select id="botSelector" class="bot-selector" onchange="switchBot()">
+                            <option value="">Selecione um bot</option>
+                        </select>
+                        <button class="btn btn-secondary btn-sm" onclick="clearTerminal()">
+                            <i class="fas fa-trash"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Controles do Terminal -->
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <button class="btn btn-sm btn-danger" onclick="clearTerminal()">
+                        <i class="fas fa-trash"></i> Limpar
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="showTerminalHistory()">
+                        <i class="fas fa-history"></i> Histórico
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="exportTerminalLog()">
+                        <i class="fas fa-download"></i> Exportar Log
+                    </button>
+                    <div style="flex: 1;"></div>
+                    <span id="terminalStatus" style="padding: 0.5rem; font-size: 0.875rem; color: var(--success-color);">
+                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i> Conectado
+                    </span>
+                </div>
+
+                <div class="terminal-container" id="terminalContainer">
+                    <div class="terminal-output" id="terminalOutput">
+                        <div class="terminal-line terminal-info">
+                            <i class="fas fa-info-circle"></i> NextBot Terminal v2.0 - Terminal Completo com Controle Total
+                        </div>
+                        <div class="terminal-line terminal-success">
+                            <i class="fas fa-check"></i> Digite qualquer comando Linux/Shell
+                        </div>
+                        <div class="terminal-line terminal-info">
+                            <i class="fas fa-keyboard"></i> Use ↑/↓ para navegar no histórico | Tab para autocompletar | Ctrl+C para limpar
+                        </div>
+                    </div>
+                    <div class="terminal-input-line">
+                        <span class="terminal-prompt" id="terminalPrompt">nextbot@terminal:~$</span>
+                        <input type="text" id="terminalInput" class="terminal-input" placeholder="Digite qualquer comando..." autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- Comandos Rápidos -->
+                <div class="quick-commands">
+                    <button class="btn btn-sm btn-secondary" onclick="executeQuickCommand('pm2 list')">
+                        <i class="fas fa-list"></i> PM2 List
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="executeQuickCommand('pm2 logs --lines 50')">
+                        <i class="fas fa-file-alt"></i> PM2 Logs
+                    </button>
+                    <button class="btn btn-sm btn-info" onclick="togglePanelLogs()" id="panelLogsBtn">
+                        <i class="fas fa-desktop"></i> Logs do Painel
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="executeQuickCommand('ls -la')">
+                        <i class="fas fa-folder"></i> Listar Arquivos
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="executeQuickCommand('pwd')">
+                        <i class="fas fa-map-marker-alt"></i> Diretório Atual
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="executeQuickCommand('df -h')">
+                        <i class="fas fa-hdd"></i> Espaço em Disco
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="executeQuickCommand('free -h')">
+                        <i class="fas fa-memory"></i> Memória
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="executeQuickCommand('top -bn1 | head -20')">
+                        <i class="fas fa-chart-line"></i> Processos
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="executeQuickCommand('node -v && npm -v')">
+                        <i class="fab fa-node-js"></i> Versões
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Histórico de Comandos -->
+        <div class="card">
+            <h3><i class="fas fa-history"></i> Histórico de Comandos</h3>
+            <div class="command-history" id="commandHistory">
+                <p class="text-muted">Nenhum comando executado ainda</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Adicionar Bot -->
+    <div id="addBotModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-robot"></i> Adicionar Novo Bot</h3>
+                <span class="close" onclick="closeAddBotModal()">&times;</span>
+            </div>
+            <form id="addBotForm" onsubmit="addBot(event)">
+                <div class="form-group">
+                    <label for="botName">Nome do Bot</label>
+                    <input type="text" id="botName" name="botName" placeholder="Ex: Bot WhatsApp Vendas" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="botPath">Caminho da Pasta do Bot</label>
+                    <div class="path-input-group">
+                        <input type="text" id="botPath" name="botPath" placeholder="/caminho/para/pasta/do/bot" required>
+                        <button type="button" class="btn btn-secondary" onclick="browsePath()">
+                            <i class="fas fa-folder-open"></i> Procurar
+                        </button>
+                    </div>
+                    <small class="form-text">Caminho absoluto para a pasta do bot</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="botScript">Script de Inicialização</label>
+                    <input type="text" id="botScript" name="botScript" placeholder="index.js" value="index.js" required>
+                    <small class="form-text">Arquivo principal do bot (ex: index.js, app.js)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="botPort">Porta (Opcional)</label>
+                    <input type="number" id="botPort" name="botPort" placeholder="3000">
+                </div>
+
+                <div class="form-group" style="background: var(--info-bg); padding: 1rem; border-radius: 4px; border-left: 4px solid var(--info-color);">
+                    <p style="margin: 0; color: var(--info-color);">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Processo Automático:</strong>
+                    </p>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-secondary);">
+                        <li>✅ Instalação de dependências (npm install)</li>
+                        <li>✅ Inicialização do bot via PM2</li>
+                        <li>✅ Geração automática de QR Code</li>
+                    </ul>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn" onclick="closeAddBotModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-success" id="addBotBtn">
+                        <i class="fas fa-plus"></i> Adicionar Bot
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: QR Code -->
+    <div id="qrCodeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-qrcode"></i> QR Code de Autenticação</h3>
+                <span class="close" onclick="closeQrCodeModal()">&times;</span>
+            </div>
+            <div id="qrCodeContent" style="text-align: center; padding: 2rem;">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    Aguardando QR Code...
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 1rem;">
+                <button class="btn btn-primary" onclick="refreshQrCode()">
+                    <i class="fas fa-sync"></i> Atualizar QR Code
+                </button>
+                <button class="btn btn-secondary" onclick="closeQrCodeModal()">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Navegador de Pastas -->
+    <div id="folderBrowserModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-folder-open"></i> Navegar Pastas</h3>
+                <button class="close-btn" onclick="closeFolderBrowser()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 1rem;">
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button class="btn btn-sm btn-secondary" onclick="navigateToParent()" id="parentBtn">
+                            <i class="fas fa-arrow-up"></i> Voltar
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="navigateToHome()">
+                            <i class="fas fa-home"></i> Home
+                        </button>
+                        <input type="text" id="currentPathDisplay" readonly style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--card-bg);">
+                    </div>
+                </div>
+                
+                <div id="folderList" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem;">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Carregando...
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="closeFolderBrowser()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="selectCurrentPath()">
+                        <i class="fas fa-check"></i> Selecionar Pasta Atual
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Log de Instalação -->
+    <div id="installLogModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-download"></i> Instalando Dependências</h3>
+                <span class="close" onclick="closeInstallLogModal()">&times;</span>
+            </div>
+            <div id="installLogContent" style="padding: 1rem;">
+                <div class="terminal-container" style="height: 400px;">
+                    <div class="terminal-output" id="installLogOutput">
+                        <div class="terminal-line terminal-info">
+                            <i class="fas fa-info-circle"></i> Instalando dependências...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Detalhes do Bot -->
+    <div id="botDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> Detalhes do Bot</h3>
+                <span class="close" onclick="closeBotDetailsModal()">&times;</span>
+            </div>
+            <div id="botDetailsContent">
+                <!-- Conteúdo dinâmico -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken;
+        let user;
+        let currentBot = null;
+        let commandHistory = [];
+        let panelLogsEnabled = false;
+        let panelLogsCommand = null;
+        let historyIndex = -1;
+
+        // Verificar autenticação
+        async function checkAuth() {
+            authToken = localStorage.getItem('authToken');
+            if (!authToken) {
+                window.location.href = '/';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Não autenticado');
+                }
+
+                user = await response.json();
+                document.getElementById('userInfo').textContent = `Olá, ${user.username}`;
+                
+                // Mostrar menu de usuários apenas para admins
+                if (user.role === 'admin') {
+                    document.getElementById('usersMenuLink').style.display = 'inline-block';
+                }
+                
+                loadBots();
+            } catch (error) {
+                console.error('Erro na autenticação:', error);
+                localStorage.removeItem('authToken');
+                window.location.href = '/';
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('authToken');
+            window.location.href = '/';
+        }
+
+        // Carregar lista de bots
+        async function loadBots() {
+            try {
+                const response = await fetch('/api/bots', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const bots = await response.json();
+                    displayBots(bots);
+                    updateBotSelector(bots);
+                } else {
+                    document.getElementById('botsList').innerHTML = '<p class="text-muted">Erro ao carregar bots</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar bots:', error);
+                document.getElementById('botsList').innerHTML = '<p class="text-muted">Nenhum bot configurado</p>';
+            }
+        }
+
+        // Exibir bots
+        function displayBots(bots) {
+            const container = document.getElementById('botsList');
+            
+            if (bots.length === 0) {
+                container.innerHTML = '<p class="text-muted">Nenhum bot configurado. Clique em "Adicionar Bot" para começar.</p>';
+                return;
+            }
+
+            container.innerHTML = bots.map(bot => `
+                <div class="bot-item ${bot.status === 'online' ? 'bot-online' : 'bot-offline'}">
+                    <div class="bot-info">
+                        <div class="bot-name">
+                            <i class="fas fa-robot"></i>
+                            <strong>${bot.name}</strong>
+                        </div>
+                        <div class="bot-status">
+                            <span class="status-badge ${bot.status === 'online' ? 'badge-success' : 'badge-danger'}">
+                                ${bot.status === 'online' ? 'Online' : 'Offline'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="bot-details">
+                        <small><i class="fas fa-folder"></i> ${bot.path}</small>
+                        <small><i class="fas fa-file-code"></i> ${bot.script}</small>
+                    </div>
+                    <div class="bot-actions">
+                        <button class="btn btn-sm btn-success" onclick="startBot('${bot.id}')" ${bot.status === 'online' ? 'disabled' : ''}>
+                            <i class="fas fa-play"></i> Iniciar
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="stopBot('${bot.id}')" ${bot.status === 'offline' ? 'disabled' : ''}>
+                            <i class="fas fa-stop"></i> Parar
+                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="restartBot('${bot.id}')" ${bot.status === 'offline' ? 'disabled' : ''}>
+                            <i class="fas fa-redo"></i> Reiniciar
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="showQrCode('${bot.id}')">
+                            <i class="fas fa-qrcode"></i> QR Code
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="showBotDetails('${bot.id}')">
+                            <i class="fas fa-info-circle"></i> Detalhes
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteBot('${bot.id}')">
+                            <i class="fas fa-trash"></i> Remover
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Atualizar seletor de bots
+        function updateBotSelector(bots) {
+            const selector = document.getElementById('botSelector');
+            selector.innerHTML = '<option value="">Selecione um bot</option>' +
+                bots.map(bot => `<option value="${bot.id}">${bot.name}</option>`).join('');
+        }
+
+        // Trocar bot ativo no terminal
+        async function switchBot() {
+            const botId = document.getElementById('botSelector').value;
+            currentBot = botId;
+            
+            if (!botId) {
+                addTerminalLine(`Bot deselecionado`, 'info');
+                document.getElementById('terminalPrompt').textContent = 'nextbot@terminal:~$';
+                return;
+            }
+            
+            try {
+                // Buscar informações do bot
+                const response = await fetch(`/api/bots/${botId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    const bot = await response.json();
+                    
+                    // Atualizar prompt com a pasta do bot
+                    const shortPath = bot.path.replace(/^\/home\/[^\/]+/, '~');
+                    document.getElementById('terminalPrompt').textContent = `nextbot@${bot.name}:${shortPath}$`;
+                    
+                    // Mostrar informações no terminal
+                    addTerminalLine('═'.repeat(60), 'info');
+                    addTerminalLine(`🤖 Bot: ${bot.name}`, 'success');
+                    addTerminalLine(`📁 Pasta: ${bot.path}`, 'info');
+                    addTerminalLine(`📄 Script: ${bot.script}`, 'info');
+                    addTerminalLine(`📊 Status: ${bot.status || 'unknown'}`, bot.status === 'online' ? 'success' : 'warning');
+                    if (bot.uptime) {
+                        const uptimeMinutes = Math.floor((Date.now() - bot.uptime) / 60000);
+                        addTerminalLine(`⏱️ Uptime: ${uptimeMinutes} minutos`, 'info');
+                    }
+                    if (bot.memory) {
+                        const memoryMB = (bot.memory / 1024 / 1024).toFixed(2);
+                        addTerminalLine(`💾 Memória: ${memoryMB} MB`, 'info');
+                    }
+                    addTerminalLine('═'.repeat(60), 'info');
+                    addTerminalLine('', 'info');
+                    addTerminalLine('💡 Dica: Comandos serão executados na pasta do bot', 'info');
+                    addTerminalLine('', 'info');
+                } else {
+                    addTerminalLine(`Erro ao buscar informações do bot`, 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao trocar bot:', error);
+                addTerminalLine(`Erro: ${error.message}`, 'error');
+            }
+        }
+
+        // Abrir modal de adicionar bot
+        function openAddBotModal() {
+            document.getElementById('addBotModal').style.display = 'flex';
+        }
+
+        // Fechar modal de adicionar bot
+        function closeAddBotModal() {
+            document.getElementById('addBotModal').style.display = 'none';
+            document.getElementById('addBotForm').reset();
+        }
+
+        // Adicionar bot
+        async function addBot(event) {
+            event.preventDefault();
+            
+            const addBtn = document.getElementById('addBotBtn');
+            
+            const formData = {
+                name: document.getElementById('botName').value,
+                path: document.getElementById('botPath').value,
+                script: document.getElementById('botScript').value,
+                port: document.getElementById('botPort').value || null
+            };
+
+            try {
+                // Desabilitar botão
+                addBtn.disabled = true;
+                addBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+                
+                // Abrir modal de instalação automaticamente
+                openInstallLogModal();
+                addInstallLogLine('🚀 Iniciando configuração automática do bot...', 'info');
+                addInstallLogLine(`📁 Pasta: ${formData.path}`, 'info');
+                addInstallLogLine(`📄 Script: ${formData.script}`, 'info');
+                addInstallLogLine('', 'info');
+                
+                const response = await fetch('/api/bots', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    const bot = await response.json();
+                    
+                    addInstallLogLine('✅ Bot registrado no sistema', 'success');
+                    addInstallLogLine('📦 Verificando dependências...', 'info');
+                    
+                    // Fechar modal de adicionar
+                    closeAddBotModal();
+                    
+                    // Monitorar progresso da instalação
+                    let checkCount = 0;
+                    const maxChecks = 60; // 60 verificações = 2 minutos
+                    
+                    let lastLogCount = 0;
+                    let hasShownDepsSuccess = false;
+                    let hasShownStartSuccess = false;
+                    
+                    const checkProgress = setInterval(async () => {
+                        checkCount++;
+                        
+                        try {
+                            const statusResponse = await fetch(`/api/bots/${bot.id}`, {
+                                headers: { 'Authorization': `Bearer ${authToken}` }
+                            });
+                            
+                            if (statusResponse.ok) {
+                                const botData = await statusResponse.json();
+                                
+                                // Mostrar TODOS os logs novos
+                                if (botData.installationLog && botData.installationLog.length > lastLogCount) {
+                                    const newLogs = botData.installationLog.slice(lastLogCount);
+                                    
+                                    newLogs.forEach(log => {
+                                        if (log.type === 'success' && log.message.includes('instaladas') && !hasShownDepsSuccess) {
+                                            addInstallLogLine('✅ Dependências instaladas com sucesso!', 'success');
+                                            hasShownDepsSuccess = true;
+                                        } else if (log.type === 'success' && log.message.includes('iniciado') && !hasShownStartSuccess) {
+                                            addInstallLogLine('✅ Bot iniciado com sucesso!', 'success');
+                                            hasShownStartSuccess = true;
+                                        } else if (log.type === 'error') {
+                                            addInstallLogLine(`❌ ${log.message}`, 'error');
+                                            if (log.output) {
+                                                addInstallLogLine('', 'error');
+                                                addInstallLogLine('📋 Detalhes do erro:', 'error');
+                                                addInstallLogLine(log.output, 'error');
+                                            }
+                                        } else if (log.type === 'info') {
+                                            addInstallLogLine(`ℹ️ ${log.message}`, 'info');
+                                        }
+                                    });
+                                    
+                                    lastLogCount = botData.installationLog.length;
+                                }
+                                
+                                // Verificar status e buscar logs do PM2
+                                if (botData.status === 'online' && hasShownStartSuccess) {
+                                    addInstallLogLine('', 'info');
+                                    addInstallLogLine('🔍 Verificando logs do bot...', 'info');
+                                    
+                                    // Buscar logs do PM2
+                                    try {
+                                        const logsResponse = await fetch(`/api/bots/${bot.id}/logs`, {
+                                            headers: { 'Authorization': `Bearer ${authToken}` }
+                                        });
+                                        
+                                        if (logsResponse.ok) {
+                                            const logsData = await logsResponse.json();
+                                            if (logsData.logs) {
+                                                addInstallLogLine('', 'info');
+                                                addInstallLogLine('📋 Logs do bot:', 'info');
+                                                addInstallLogLine('─'.repeat(50), 'info');
+                                                
+                                                const logLines = logsData.logs.split('\n').slice(-20); // Últimas 20 linhas
+                                                logLines.forEach(line => {
+                                                    if (line.trim()) {
+                                                        if (line.toLowerCase().includes('error') || line.toLowerCase().includes('erro')) {
+                                                            addInstallLogLine(line, 'error');
+                                                        } else if (line.toLowerCase().includes('warn')) {
+                                                            addInstallLogLine(line, 'warning');
+                                                        } else {
+                                                            addInstallLogLine(line, 'success');
+                                                        }
+                                                    }
+                                                });
+                                                
+                                                addInstallLogLine('─'.repeat(50), 'info');
+                                            }
+                                        }
+                                    } catch (error) {
+                                        console.error('Erro ao buscar logs:', error);
+                                    }
+                                    
+                                    addInstallLogLine('', 'info');
+                                    addInstallLogLine('🔍 Aguardando QR Code...', 'info');
+                                    
+                                    // Verificar QR Code
+                                    setTimeout(() => {
+                                        checkForQrCode(bot.id);
+                                    }, 3000);
+                                    
+                                    clearInterval(checkProgress);
+                                    loadBots();
+                                } else if (botData.status === 'error' || botData.error) {
+                                    addInstallLogLine('', 'error');
+                                    addInstallLogLine('❌ Bot em estado de erro', 'error');
+                                    if (botData.error) {
+                                        addInstallLogLine(`Erro: ${botData.error}`, 'error');
+                                    }
+                                    
+                                    // Buscar logs do PM2 mesmo com erro
+                                    try {
+                                        const logsResponse = await fetch(`/api/bots/${bot.id}/logs`, {
+                                            headers: { 'Authorization': `Bearer ${authToken}` }
+                                        });
+                                        
+                                        if (logsResponse.ok) {
+                                            const logsData = await logsResponse.json();
+                                            if (logsData.logs) {
+                                                addInstallLogLine('', 'error');
+                                                addInstallLogLine('📋 Logs de erro do PM2:', 'error');
+                                                addInstallLogLine('─'.repeat(50), 'error');
+                                                addInstallLogLine(logsData.logs, 'error');
+                                                addInstallLogLine('─'.repeat(50), 'error');
+                                            }
+                                        }
+                                    } catch (error) {
+                                        console.error('Erro ao buscar logs:', error);
+                                    }
+                                    
+                                    clearInterval(checkProgress);
+                                    loadBots();
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Erro ao verificar progresso:', error);
+                            addInstallLogLine(`❌ Erro ao monitorar: ${error.message}`, 'error');
+                        }
+                        
+                        // Timeout
+                        if (checkCount >= maxChecks) {
+                            addInstallLogLine('', 'warning');
+                            addInstallLogLine('⚠️ Tempo limite excedido. Verificando logs finais...', 'warning');
+                            
+                            // Tentar buscar logs uma última vez
+                            try {
+                                const logsResponse = await fetch(`/api/bots/${bot.id}/logs`, {
+                                    headers: { 'Authorization': `Bearer ${authToken}` }
+                                });
+                                
+                                if (logsResponse.ok) {
+                                    const logsData = await logsResponse.json();
+                                    if (logsData.logs) {
+                                        addInstallLogLine('', 'info');
+                                        addInstallLogLine('📋 Logs do PM2:', 'info');
+                                        addInstallLogLine('─'.repeat(50), 'info');
+                                        addInstallLogLine(logsData.logs, 'info');
+                                        addInstallLogLine('─'.repeat(50), 'info');
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('Erro ao buscar logs finais:', error);
+                            }
+                            
+                            clearInterval(checkProgress);
+                            loadBots();
+                        }
+                    }, 2000); // Verificar a cada 2 segundos
+                    
+                    showAlert('Bot adicionado! Instalando dependências e iniciando...', 'success');
+                    
+                } else {
+                    const error = await response.json();
+                    addInstallLogLine(`❌ Erro: ${error.error || error.message}`, 'error');
+                    showAlert(error.error || 'Erro ao adicionar bot', 'danger');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                addInstallLogLine(`❌ Erro de conexão: ${error.message}`, 'error');
+                showAlert('Erro ao adicionar bot', 'danger');
+            } finally {
+                // Reabilitar botão
+                addBtn.disabled = false;
+                addBtn.innerHTML = '<i class="fas fa-plus"></i> Adicionar Bot';
+            }
+        }
+        
+        // Verificar log de instalação
+        async function checkInstallationLog(botId) {
+            try {
+                const response = await fetch(`/api/bots/${botId}/installation-log`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    data.installationLog.forEach(log => {
+                        addInstallLogLine(log.message, log.type);
+                        if (log.output) {
+                            addInstallLogLine(log.output, 'output');
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao verificar log:', error);
+            }
+        }
+        
+        // Verificar QR Code
+        let currentBotForQr = null;
+        let qrCheckInterval = null;
+        
+        async function checkForQrCode(botId) {
+            currentBotForQr = botId;
+            
+            try {
+                const response = await fetch(`/api/bots/${botId}/qrcode`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.hasQrCode) {
+                        openQrCodeModal();
+                        displayQrCode(data.qrCode);
+                        
+                        // Verificar periodicamente por novo QR Code
+                        qrCheckInterval = setInterval(() => refreshQrCode(), 10000);
+                    } else {
+                        addInstallLogLine(data.message || 'QR Code não disponível', 'info');
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao verificar QR Code:', error);
+            }
+        }
+        
+        // Exibir QR Code
+        function displayQrCode(qrCode) {
+            const content = document.getElementById('qrCodeContent');
+            content.innerHTML = `
+                <pre style="font-family: monospace; font-size: 8px; line-height: 8px; background: white; color: black; padding: 1rem; display: inline-block; border-radius: 8px;">
+${qrCode}
+                </pre>
+                <p style="margin-top: 1rem; color: var(--text-light);">
+                    <i class="fas fa-mobile-alt"></i> Escaneie este QR Code com o WhatsApp
+                </p>
+            `;
+        }
+        
+        // Atualizar QR Code
+        async function refreshQrCode() {
+            if (!currentBotForQr) return;
+            
+            try {
+                const response = await fetch(`/api/bots/${currentBotForQr}/qrcode`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.hasQrCode) {
+                        displayQrCode(data.qrCode);
+                    } else {
+                        document.getElementById('qrCodeContent').innerHTML = `
+                            <div class="terminal-line terminal-success">
+                                <i class="fas fa-check-circle"></i> Bot autenticado com sucesso!
+                            </div>
+                        `;
+                        
+                        // Parar verificação
+                        if (qrCheckInterval) {
+                            clearInterval(qrCheckInterval);
+                            qrCheckInterval = null;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar QR Code:', error);
+            }
+        }
+        
+        // Abrir modal de QR Code
+        function openQrCodeModal() {
+            document.getElementById('qrCodeModal').style.display = 'flex';
+        }
+        
+        // Fechar modal de QR Code
+        function closeQrCodeModal() {
+            document.getElementById('qrCodeModal').style.display = 'none';
+            currentBotForQr = null;
+            
+            if (qrCheckInterval) {
+                clearInterval(qrCheckInterval);
+                qrCheckInterval = null;
+            }
+        }
+        
+        // Abrir modal de log de instalação
+        function openInstallLogModal() {
+            document.getElementById('installLogModal').style.display = 'flex';
+            document.getElementById('installLogOutput').innerHTML = '';
+        }
+        
+        // Fechar modal de log de instalação
+        function closeInstallLogModal() {
+            document.getElementById('installLogModal').style.display = 'none';
+        }
+        
+        // Adicionar linha ao log de instalação
+        function addInstallLogLine(text, type = 'output') {
+            const output = document.getElementById('installLogOutput');
+            const line = document.createElement('div');
+            line.className = `terminal-line terminal-${type}`;
+            
+            if (type === 'error') {
+                line.innerHTML = `<i class="fas fa-times-circle"></i> ${text}`;
+            } else if (type === 'success') {
+                line.innerHTML = `<i class="fas fa-check-circle"></i> ${text}`;
+            } else if (type === 'info') {
+                line.innerHTML = `<i class="fas fa-info-circle"></i> ${text}`;
+            } else {
+                line.textContent = text;
+            }
+            
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        // Mostrar QR Code de um bot
+        async function showQrCode(botId) {
+            currentBotForQr = botId;
+            openQrCodeModal();
+            
+            document.getElementById('qrCodeContent').innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    Carregando QR Code...
+                </div>
+            `;
+            
+            await checkForQrCode(botId);
+        }
+
+        // Variáveis globais para navegação de pastas
+        let currentBrowsePath = null;
+        let parentBrowsePath = null;
+
+        // Procurar pasta
+        async function browsePath() {
+            currentBrowsePath = null;
+            openFolderBrowser();
+            await loadFolderContents();
+        }
+
+        // Abrir modal de navegação
+        function openFolderBrowser() {
+            document.getElementById('folderBrowserModal').style.display = 'flex';
+        }
+
+        // Fechar modal de navegação
+        function closeFolderBrowser() {
+            document.getElementById('folderBrowserModal').style.display = 'none';
+        }
+
+        // Carregar conteúdo de pasta
+        async function loadFolderContents(path = null) {
+            try {
+                const url = path 
+                    ? `/api/terminal/browse?path=${encodeURIComponent(path)}`
+                    : '/api/terminal/browse';
+                
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar pasta');
+                }
+                
+                const data = await response.json();
+                currentBrowsePath = data.currentPath;
+                parentBrowsePath = data.parentPath;
+                
+                // Atualizar display do caminho atual
+                document.getElementById('currentPathDisplay').value = currentBrowsePath;
+                
+                // Habilitar/desabilitar botão voltar
+                const parentBtn = document.getElementById('parentBtn');
+                if (parentBrowsePath) {
+                    parentBtn.disabled = false;
+                } else {
+                    parentBtn.disabled = true;
+                }
+                
+                // Renderizar lista de itens
+                const folderList = document.getElementById('folderList');
+                
+                if (data.items.length === 0) {
+                    folderList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Pasta vazia</p>';
+                    return;
+                }
+                
+                folderList.innerHTML = data.items.map(item => {
+                    const icon = item.type === 'directory' 
+                        ? '<i class="fas fa-folder" style="color: var(--warning-color);"></i>'
+                        : '<i class="fas fa-file" style="color: var(--text-secondary);"></i>';
+                    
+                    const clickHandler = item.type === 'directory'
+                        ? `onclick="loadFolderContents('${item.path.replace(/'/g, "\\'")}')" style="cursor: pointer;"`
+                        : '';
+                    
+                    return `
+                        <div ${clickHandler} style="padding: 0.75rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; transition: background 0.2s;" 
+                             onmouseover="this.style.background='var(--hover-bg)'" 
+                             onmouseout="this.style.background='transparent'">
+                            ${icon}
+                            <span style="flex: 1;">${item.name}</span>
+                            ${item.type === 'directory' ? '<i class="fas fa-chevron-right" style="color: var(--text-secondary);"></i>' : ''}
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Erro ao carregar pasta:', error);
+                showAlert('Erro ao carregar pasta', 'danger');
+            }
+        }
+
+        // Navegar para pasta pai
+        async function navigateToParent() {
+            if (parentBrowsePath) {
+                await loadFolderContents(parentBrowsePath);
+            }
+        }
+
+        // Navegar para home
+        async function navigateToHome() {
+            await loadFolderContents();
+        }
+
+        // Selecionar pasta atual
+        function selectCurrentPath() {
+            if (currentBrowsePath) {
+                document.getElementById('botPath').value = currentBrowsePath;
+                closeFolderBrowser();
+                showAlert('Pasta selecionada com sucesso', 'success');
+            }
+        }
+
+        // Iniciar bot
+        async function startBot(botId) {
+            try {
+                // Buscar nome do bot
+                const botResponse = await fetch(`/api/bots/${botId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const botData = await botResponse.json();
+                const botName = botData.name || botId;
+                
+                // Mostrar no terminal
+                addTerminalLine('', 'info');
+                addTerminalLine('═'.repeat(60), 'info');
+                addTerminalLine(`🚀 Iniciando bot: ${botName}`, 'info');
+                addTerminalLine(`📋 ID: ${botId}`, 'info');
+                
+                const response = await fetch(`/api/bots/${botId}/start`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    addTerminalLine('✅ Bot iniciado com sucesso!', 'success');
+                    addTerminalLine('═'.repeat(60), 'info');
+                    addTerminalLine('', 'info');
+                    showAlert('Bot iniciado com sucesso!', 'success');
+                    loadBots();
+                } else {
+                    const error = await response.json();
+                    addTerminalLine(`❌ Erro ao iniciar bot: ${error.error || 'Erro desconhecido'}`, 'error');
+                    addTerminalLine('═'.repeat(60), 'info');
+                    addTerminalLine('', 'info');
+                    showAlert('Erro ao iniciar bot', 'danger');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                addTerminalLine(`❌ Erro: ${error.message}`, 'error');
+                addTerminalLine('═'.repeat(60), 'info');
+                addTerminalLine('', 'info');
+                showAlert('Erro ao iniciar bot', 'danger');
+            }
+        }
+
+        // Parar bot
+        async function stopBot(botId) {
+            try {
+                // Buscar nome do bot
+                const botResponse = await fetch(`/api/bots/${botId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const botData = await botResponse.json();
+                const botName = botData.name || botId;
+                
+                // Mostrar no terminal
+                addTerminalLine('', 'info');
+                addTerminalLine('═'.repeat(60), 'info');
+                addTerminalLine(`⏸️ Parando bot: ${botName}`, 'warning');
+                addTerminalLine(`📋 ID: ${botId}`, 'info');
+                
+                const response = await fetch(`/api/bots/${botId}/stop`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    addTerminalLine('✅ Bot parado com sucesso!', 'success');
+                    addTerminalLine('═'.repeat(60), 'info');
+                    addTerminalLine('', 'info');
+                    showAlert('Bot parado com sucesso!', 'success');
+                    loadBots();
+                } else {
+                    const error = await response.json();
+                    addTerminalLine(`❌ Erro ao parar bot: ${error.error || 'Erro desconhecido'}`, 'error');
+                    addTerminalLine('═'.repeat(60), 'info');
+                    addTerminalLine('', 'info');
+                    showAlert('Erro ao parar bot', 'danger');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                addTerminalLine(`❌ Erro: ${error.message}`, 'error');
+                addTerminalLine('═'.repeat(60), 'info');
+                addTerminalLine('', 'info');
+                showAlert('Erro ao parar bot', 'danger');
+            }
+        }
+
+        // Reiniciar bot
+        async function restartBot(botId) {
+            try {
+                // Buscar nome do bot
+                const botResponse = await fetch(`/api/bots/${botId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const botData = await botResponse.json();
+                const botName = botData.name || botId;
+                
+                // Mostrar no terminal
+                addTerminalLine('', 'info');
+                addTerminalLine('═'.repeat(60), 'info');
+                addTerminalLine(`🔄 Reiniciando bot: ${botName}`, 'warning');
+                addTerminalLine(`📋 ID: ${botId}`, 'info');
+                
+                const response = await fetch(`/api/bots/${botId}/restart`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    addTerminalLine('✅ Bot reiniciado com sucesso!', 'success');
+                    addTerminalLine('═'.repeat(60), 'info');
+                    addTerminalLine('', 'info');
+                    showAlert('Bot reiniciado com sucesso!', 'success');
+                    loadBots();
+                } else {
+                    const error = await response.json();
+                    addTerminalLine(`❌ Erro ao reiniciar bot: ${error.error || 'Erro desconhecido'}`, 'error');
+                    addTerminalLine('═'.repeat(60), 'info');
+                    addTerminalLine('', 'info');
+                    showAlert('Erro ao reiniciar bot', 'danger');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                addTerminalLine(`❌ Erro: ${error.message}`, 'error');
+                addTerminalLine('═'.repeat(60), 'info');
+                addTerminalLine('', 'info');
+                showAlert('Erro ao reiniciar bot', 'danger');
+            }
+        }
+
+        // Deletar bot
+        async function deleteBot(botId) {
+            if (!confirm('Tem certeza que deseja remover este bot?')) return;
+
+            try {
+                // Buscar nome do bot
+                const botResponse = await fetch(`/api/bots/${botId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const botData = await botResponse.json();
+                const botName = botData.name || botId;
+                
+                // Mostrar no terminal
+                addTerminalLine('', 'info');
+                addTerminalLine('═'.repeat(60), 'error');
+                addTerminalLine(`🗑️ Removendo bot: ${botName}`, 'error');
+                addTerminalLine(`📋 ID: ${botId}`, 'info');
+                
+                const response = await fetch(`/api/bots/${botId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    addTerminalLine('✅ Bot removido com sucesso!', 'success');
+                    addTerminalLine('⚠️ Processo PM2 parado e removido', 'warning');
+                    addTerminalLine('═'.repeat(60), 'error');
+                    addTerminalLine('', 'info');
+                    showAlert('Bot removido com sucesso!', 'success');
+                    loadBots();
+                } else {
+                    const error = await response.json();
+                    addTerminalLine(`❌ Erro ao remover bot: ${error.error || 'Erro desconhecido'}`, 'error');
+                    addTerminalLine('═'.repeat(60), 'error');
+                    addTerminalLine('', 'info');
+                    showAlert('Erro ao remover bot', 'danger');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                addTerminalLine(`❌ Erro: ${error.message}`, 'error');
+                addTerminalLine('═'.repeat(60), 'error');
+                addTerminalLine('', 'info');
+                showAlert('Erro ao remover bot', 'danger');
+            }
+        }
+
+        // Mostrar detalhes do bot
+        function showBotDetails(botId) {
+            // Implementar exibição de detalhes
+            showAlert('Detalhes do bot em desenvolvimento', 'info');
+        }
+
+        function closeBotDetailsModal() {
+            document.getElementById('botDetailsModal').style.display = 'none';
+        }
+
+        // Terminal - Executar comando
+        async function executeCommand(command) {
+            if (!command.trim()) return;
+
+            addTerminalLine(`$ ${command}`, 'command');
+            commandHistory.push(command);
+            historyIndex = commandHistory.length;
+
+            // Comandos locais
+            if (command === 'help') {
+                showHelp();
+                return;
+            }
+
+            if (command === 'clear') {
+                clearTerminal();
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/terminal/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ command, botId: currentBot })
+                });
+
+                const result = await response.json();
+                
+                // Mostrar diretório onde foi executado (se disponível)
+                if (result.cwd && currentBot) {
+                    const shortCwd = result.cwd.replace(/^\/home\/[^\/]+/, '~');
+                    addTerminalLine(`[${shortCwd}]`, 'info');
+                }
+                
+                if (response.ok) {
+                    if (result.success) {
+                        addTerminalLine(result.output || 'Comando executado com sucesso', 'success');
+                    } else {
+                        addTerminalLine(result.error || 'Erro ao executar comando', 'error');
+                        if (result.output) {
+                            addTerminalLine(result.output, 'error');
+                        }
+                    }
+                } else {
+                    addTerminalLine(result.error || 'Erro ao executar comando', 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                addTerminalLine('Erro ao executar comando', 'error');
+            }
+
+            updateCommandHistory();
+        }
+
+        // Adicionar linha ao terminal
+        function addTerminalLine(text, type = 'output') {
+            const output = document.getElementById('terminalOutput');
+            const line = document.createElement('div');
+            line.className = `terminal-line terminal-${type}`;
+            
+            if (type === 'error') {
+                line.innerHTML = `<i class="fas fa-times-circle"></i> ${text}`;
+            } else if (type === 'success') {
+                line.innerHTML = `<i class="fas fa-check-circle"></i> ${text}`;
+            } else if (type === 'info') {
+                line.innerHTML = `<i class="fas fa-info-circle"></i> ${text}`;
+            } else if (type === 'command') {
+                line.innerHTML = `<span class="terminal-prompt">nextbot@terminal:~$</span> ${text.substring(2)}`;
+            } else {
+                line.textContent = text;
+            }
+            
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        // Limpar terminal
+        function clearTerminal() {
+            document.getElementById('terminalOutput').innerHTML = `
+                <div class="terminal-line terminal-info">
+                    <i class="fas fa-info-circle"></i> Terminal limpo
+                </div>
+            `;
+        }
+
+        // Mostrar histórico de comandos
+        function showTerminalHistory() {
+            if (commandHistory.length === 0) {
+                addTerminalLine('Nenhum comando no histórico', 'info');
+                return;
+            }
+            
+            addTerminalLine('═══ Histórico de Comandos ═══', 'info');
+            commandHistory.slice(-20).forEach((cmd, index) => {
+                addTerminalLine(`${index + 1}. ${cmd}`, 'success');
+            });
+            addTerminalLine('═══════════════════════════', 'info');
+        }
+
+        // Exportar log do terminal
+        function exportTerminalLog() {
+            const output = document.getElementById('terminalOutput');
+            const lines = output.querySelectorAll('.terminal-line');
+            
+            let logContent = '=== NextBot Terminal Log ===\n';
+            logContent += `Data: ${new Date().toLocaleString()}\n`;
+            logContent += `Usuário: ${user?.username || 'N/A'}\n`;
+            logContent += '============================\n\n';
+            
+            lines.forEach(line => {
+                logContent += line.textContent + '\n';
+            });
+            
+            // Criar e baixar arquivo
+            const blob = new Blob([logContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `terminal-log-${new Date().getTime()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showAlert('Log exportado com sucesso', 'success');
+        }
+
+        // Mostrar ajuda
+        function showHelp() {
+            const helpText = `
+Comandos disponíveis:
+  help          - Mostra esta ajuda
+  clear         - Limpa o terminal
+  pm2 list      - Lista processos PM2
+  pm2 logs      - Mostra logs do PM2
+  npm list      - Lista pacotes NPM
+  node -v       - Versão do Node.js
+  
+Você também pode executar qualquer comando do sistema.
+            `;
+            addTerminalLine(helpText, 'info');
+        }
+
+        // Executar comando rápido
+        function executeQuickCommand(command) {
+            document.getElementById('terminalInput').value = command;
+            executeCommand(command);
+            document.getElementById('terminalInput').value = '';
+        }
+
+        // Alternar logs do painel
+        function togglePanelLogs() {
+            const btn = document.getElementById('panelLogsBtn');
+            
+            if (!panelLogsEnabled) {
+                // Ativar logs do painel
+                panelLogsEnabled = true;
+                btn.classList.remove('btn-info');
+                btn.classList.add('btn-success');
+                btn.innerHTML = '<i class="fas fa-stop"></i> Parar Logs';
+                
+                addTerminalLine('', 'info');
+                addTerminalLine('═'.repeat(60), 'info');
+                addTerminalLine('📺 Monitoramento de logs do painel ATIVADO', 'success');
+                addTerminalLine('Os logs aparecerão em tempo real abaixo...', 'info');
+                addTerminalLine('═'.repeat(60), 'info');
+                addTerminalLine('', 'info');
+                
+                // Executar comando para ver logs do PM2 do painel
+                executeQuickCommand('pm2 logs nextbot-web-admin --lines 20 --nostream');
+                
+                // Iniciar monitoramento contínuo
+                startPanelLogsMonitoring();
+            } else {
+                // Desativar logs do painel
+                panelLogsEnabled = false;
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-info');
+                btn.innerHTML = '<i class="fas fa-desktop"></i> Logs do Painel';
+                
+                if (panelLogsCommand) {
+                    clearInterval(panelLogsCommand);
+                    panelLogsCommand = null;
+                }
+                
+                addTerminalLine('', 'info');
+                addTerminalLine('═'.repeat(60), 'info');
+                addTerminalLine('📺 Monitoramento de logs do painel DESATIVADO', 'warning');
+                addTerminalLine('═'.repeat(60), 'info');
+                addTerminalLine('', 'info');
+            }
+        }
+
+        // Iniciar monitoramento contínuo dos logs
+        function startPanelLogsMonitoring() {
+            let lastLogCount = 0;
+            
+            panelLogsCommand = setInterval(async () => {
+                if (!panelLogsEnabled) {
+                    clearInterval(panelLogsCommand);
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/terminal/execute', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify({ 
+                            command: 'pm2 logs nextbot-web-admin --lines 5 --nostream',
+                            botId: null
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success && result.output) {
+                        const lines = result.output.split('\n').filter(l => l.trim());
+                        
+                        // Mostrar apenas linhas novas
+                        if (lines.length > lastLogCount) {
+                            const newLines = lines.slice(lastLogCount);
+                            
+                            newLines.forEach(line => {
+                                // Colorir baseado no conteúdo
+                                if (line.includes('✅') || line.includes('conectado')) {
+                                    addTerminalLine(line, 'success');
+                                } else if (line.includes('❌') || line.includes('desconectado') || line.includes('Erro')) {
+                                    addTerminalLine(line, 'error');
+                                } else if (line.includes('⚠️') || line.includes('warning')) {
+                                    addTerminalLine(line, 'warning');
+                                } else {
+                                    addTerminalLine(line, 'info');
+                                }
+                            });
+                            
+                            lastLogCount = lines.length;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro ao buscar logs:', error);
+                }
+            }, 3000); // Atualizar a cada 3 segundos
+        }
+
+        // Atualizar histórico de comandos
+        function updateCommandHistory() {
+            const container = document.getElementById('commandHistory');
+            if (commandHistory.length === 0) {
+                container.innerHTML = '<p class="text-muted">Nenhum comando executado ainda</p>';
+                return;
+            }
+
+            container.innerHTML = commandHistory.slice(-10).reverse().map(cmd => `
+                <div class="history-item" onclick="document.getElementById('terminalInput').value='${cmd}'">
+                    <i class="fas fa-terminal"></i> ${cmd}
+                </div>
+            `).join('');
+        }
+
+        // Event listeners
+        document.getElementById('terminalInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const command = this.value.trim();
+                if (command) {
+                    executeCommand(command);
+                    this.value = '';
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (commandHistory.length > 0) {
+                    if (historyIndex === -1) {
+                        historyIndex = commandHistory.length - 1;
+                    } else if (historyIndex > 0) {
+                        historyIndex--;
+                    }
+                    this.value = commandHistory[historyIndex] || '';
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex !== -1) {
+                    if (historyIndex < commandHistory.length - 1) {
+                        historyIndex++;
+                        this.value = commandHistory[historyIndex];
+                    } else {
+                        historyIndex = -1;
+                        this.value = '';
+                    }
+                }
+            } else if (e.key === 'c' && e.ctrlKey) {
+                e.preventDefault();
+                this.value = '';
+                addTerminalLine('^C', 'error');
+            } else if (e.key === 'l' && e.ctrlKey) {
+                e.preventDefault();
+                clearTerminal();
+            } else if (e.key === 'Tab') {
+                e.preventDefault();
+                // Autocompletar comandos comuns
+                const value = this.value;
+                const commonCommands = ['pm2 list', 'pm2 logs', 'pm2 restart', 'npm install', 'npm start', 'ls -la', 'pwd', 'cd', 'cat', 'grep', 'find'];
+                const match = commonCommands.find(cmd => cmd.startsWith(value));
+                if (match) {
+                    this.value = match;
+                }
+            }
+        });
+
+        // Fechar modais ao clicar fora
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        };
+
+        // Mostrar alerta
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.classList.remove('hidden');
+            
+            setTimeout(() => {
+                alert.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Inicializar
+        checkAuth();
+    </script>
+</body>
+</html>

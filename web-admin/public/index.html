@@ -2,67 +2,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voetur Bot - Painel de Administração</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <meta name="theme-color" content="#667eea">
+    <link rel="stylesheet" href="/css/nextbot-theme.css?v=2.0">
+    <meta name="theme-color" content="#FF6B00">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .login-container {
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .login-container {
-            background: white;
             padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            animation: slideUp 0.5s ease-out;
+            position: relative;
         }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-radial);
+            opacity: 0.5;
+            z-index: 0;
+        }
+
+        .login-box {
+            background: var(--bg-card);
+            padding: 3rem;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            z-index: 1;
+            animation: scaleIn 0.5s ease-out;
+            text-align: center;
         }
 
         .logo {
             text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .logo i {
-            font-size: 3rem;
-            color: #667eea;
             margin-bottom: 1rem;
         }
 
+        .logo-image {
+            width: 400px;
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto 0.5rem auto;
+            display: block;
+            animation: pulse 2s infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 107, 0, 0.3));
+        }
+
+        .logo-icon {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: inline-block;
+            animation: pulse 2s infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 107, 0, 0.5));
+        }
+
         .logo h1 {
-            color: #333;
-            font-size: 1.8rem;
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
         }
 
         .logo p {
-            color: #666;
-            font-size: 0.9rem;
+            color: var(--text-light);
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin: 0 0 1.5rem 0;
         }
 
         .form-group {
@@ -71,56 +93,90 @@
 
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
-            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            text-align: left;
         }
 
-        .form-group input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .form-group .input-icon {
+        .input-icon {
             position: relative;
         }
 
-        .form-group .input-icon i {
+        .input-icon i {
             position: absolute;
-            left: 0.75rem;
+            left: 1.25rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #999;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            z-index: 1;
         }
 
-        .form-group .input-icon input {
-            padding-left: 2.5rem;
+        .input-icon input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3.5rem;
+            background: var(--bg-light);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: var(--transition-base);
+            font-weight: 500;
+        }
+
+        .input-icon input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: var(--bg-tertiary);
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.1);
+        }
+
+        .input-icon input::placeholder {
+            color: var(--text-light);
         }
 
         .btn {
             width: 100%;
-            padding: 0.75rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem;
+            background: var(--gradient-primary);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: transform 0.2s ease;
+            transition: var(--transition-base);
+            margin-top: 0.5rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
         }
 
         .btn:hover {
             transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
         }
 
         .btn:disabled {
@@ -130,32 +186,39 @@
         }
 
         .alert {
-            padding: 0.75rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
             font-size: 0.9rem;
+            font-weight: 500;
+            animation: slideInLeft 0.4s ease-out;
         }
 
         .alert-error {
-            background: #fee;
-            color: #c33;
-            border: 1px solid #fcc;
+            background: rgba(255, 68, 68, 0.15);
+            color: var(--error-color);
+            border: 1px solid rgba(255, 68, 68, 0.3);
         }
 
         .alert-success {
-            background: #efe;
-            color: #363;
-            border: 1px solid #cfc;
+            background: rgba(0, 200, 81, 0.15);
+            color: var(--success-color);
+            border: 1px solid rgba(0, 200, 81, 0.3);
         }
 
         .loading {
             display: none;
             text-align: center;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
+            color: var(--text-light);
+            font-weight: 500;
         }
 
         .loading i {
             animation: spin 1s linear infinite;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-right: 0.5rem;
         }
 
         @keyframes spin {
@@ -163,62 +226,62 @@
             to { transform: rotate(360deg); }
         }
 
-        .footer {
-            text-align: center;
-            margin-top: 2rem;
-            color: #666;
-            font-size: 0.8rem;
+        @media (max-width: 768px) {
+            .login-box {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .logo-image {
+                width: 280px;
+            }
+
+            .logo-icon {
+                font-size: 3rem;
+            }
+
+            .logo h1 {
+                font-size: 1.75rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <div class="logo">
-            <i class="fas fa-robot"></i>
-            <h1>Voetur Bot</h1>
-            <p>Painel de Administração</p>
-        </div>
+        <div class="login-box">
+            <div class="logo">
+                <img src="/images/nextbot-logo.png" alt="NextBot Logo" class="logo-image">
+                <p>Painel de Administração</p>
+            </div>
 
-        <div id="alert" class="alert" style="display: none;"></div>
+            <div id="alert" class="alert" style="display: none;"></div>
 
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="username">Usuário</label>
-                <div class="input-icon">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="username" name="username" required autocomplete="username">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Usuário</label>
+                    <div class="input-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="username" name="username" placeholder="Digite seu usuário" required autocomplete="username">
+                    </div>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label for="password">Senha</label>
-                <div class="input-icon">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <div class="input-icon">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" placeholder="Digite sua senha" required autocomplete="current-password">
+                    </div>
                 </div>
+
+                <button type="submit" class="btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner"></i> Autenticando...
             </div>
 
-            <button type="submit" class="btn" id="loginBtn">
-                <i class="fas fa-sign-in-alt"></i> Entrar
-            </button>
-        </form>
-
-        <div class="loading" id="loading">
-            <i class="fas fa-spinner"></i> Autenticando...
-        </div>
-
-        <!-- Rodapé com informações do desenvolvedor -->
-        <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
-            <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.85rem; color: #666;">
-                <i class="fas fa-code" style="color: #667eea;"></i>
-                <span>👨‍💻 <strong>Desenvolvedor:</strong> Desenvolvido pelo Analista Kaique Rodrigues</span>
-            </div>
-            <div style="font-size: 0.75rem; color: #999;">
-                Voetur Bot - Sistema de Bot WhatsApp
-            </div>
-            <div style="font-size: 0.7rem; color: #aaa; margin-top: 0.5rem;">
-                &copy; 2024 Voetur - Sistema de Gerenciamento de Bot
-            </div>
         </div>
     </div>
 

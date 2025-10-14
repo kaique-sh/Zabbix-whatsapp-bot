@@ -1,4 +1,4 @@
-# 🤖 Voetur WhatsApp Bot
+# 🤖 NextBot Solutions WhatsApp Bot
 
 Bot WhatsApp profissional com menu interativo, apresentação automática e arquitetura robusta, incluindo painel web de administração.
 
@@ -10,7 +10,7 @@ Bot WhatsApp profissional com menu interativo, apresentação automática e arqu
 - Navegação intuitiva por números (1-4)
 - Apresentação automática na primeira mensagem
 - Controle de flood (uma apresentação por usuário)
-- Identidade visual personalizada da Voetur
+- Identidade visual personalizada da NextBot Solutions
 
 ### 🌐 Painel Web de Administração
 - **Interface web moderna** para gerenciar o bot

@@ -131,6 +131,7 @@
         </div>
     </div>
 
+
     <script>
         let socket;
         let authToken;
@@ -409,8 +410,6 @@
                 
                 showAlert('Erro ao carregar estatísticas. Tentando novamente...', 'error');
             }
-        }
-
         // Carregar estatísticas do Freshservice
         async function loadFreshserviceStats() {
             try {
@@ -671,13 +670,23 @@
                 const statusData = await statusResponse.json();
                 console.log('Status response:', statusData);
                 
-                // Testar estatísticas do Freshservice
-                console.log('3. Testando estatísticas do Freshservice...');
-                const freshserviceResponse = await fetch('/api/stats/freshservice', {
+                // Testar debug do sistema
+                console.log('3. Testando debug do sistema...');
+                const debugResponse = await fetch('/api/bot/debug', {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
-                const freshserviceData = await freshserviceResponse.json();
-                console.log('Freshservice response:', freshserviceData);
+                const debugData = await debugResponse.json();
+                console.log('Debug response:', debugData);
+                
+                // Mostrar informações úteis
+                if (debugData.success && debugData.debug) {
+                    const debug = debugData.debug;
+                    console.log('PM2 disponível:', debug.pm2_available);
+                    console.log('Processos encontrados:', debug.processes.length);
+                    debug.processes.forEach(p => {
+                        console.log(`- ${p.name}: ${p.status} (PID: ${p.pid})`);
+                    });
+                }
                 
                 showAlert('Debug concluído. Verifique o console do navegador (F12)', 'info');
                 

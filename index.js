@@ -16,6 +16,7 @@ const express = require('express');
 const logger = require('./src/config/logger');
 const { CONFIG, validateRequiredConfig } = require('./src/config/constants');
 const { sendMessageSafely, isClientReady } = require('./src/utils/helpers');
+const { logMessageReceived } = require('./src/utils/statsLogger');
 
 // Handlers de mensagem
 const { handleFirstMessage } = require('./firstMessage');
@@ -25,6 +26,7 @@ const { handleMenuNavigation } = require('./menu/menuNavigation');
 const { handleCNPJCommand } = require('./src/commands/cnpjCommand');
 const { handleCustomCommand } = require('./src/commands/customCommands');
 const { handleStickerCommand } = require('./src/commands/stickerCommand');
+const { handleAtendimentoCommand } = require('./src/commands/atendimentoCommand');
 
 /* 3. Validação de configuração */
 try {
@@ -129,6 +131,9 @@ client.on('message', async message => {
   try {
     if (message.from === 'status@broadcast') return;
 
+    // Registrar mensagem recebida
+    logMessageReceived();
+
     /* primeira mensagem do usuário */
     await handleFirstMessage(message, client);
 
@@ -153,6 +158,12 @@ client.on('message', async message => {
       if (processedCNPJ) {
         return;
       }
+    }
+
+    /* comando !atendimento - Criar ticket no Freshservice */
+    const processedAtendimento = await handleAtendimentoCommand(message, client);
+    if (processedAtendimento) {
+      return;
     }
 
     /* navegação do menu (números 1-4) */

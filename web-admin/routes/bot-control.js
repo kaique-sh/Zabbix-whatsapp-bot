@@ -26,7 +26,7 @@ router.get('/status', authenticateToken, (req, res) => {
 
     try {
       const processes = JSON.parse(stdout);
-      const botProcess = processes.find(p => p.name === 'voetur-whatsapp-bot');
+      const botProcess = processes.find(p => p.name === 'nextbot-whatsapp-bot');
 
       if (!botProcess) {
         return res.json({
@@ -63,7 +63,7 @@ router.get('/status', authenticateToken, (req, res) => {
  * Iniciar bot
  */
 router.post('/start', authenticateToken, requireAdmin, (req, res) => {
-  exec('pm2 start ecosystem.config.js --name voetur-whatsapp-bot', (error, stdout, stderr) => {
+  exec('pm2 start ecosystem.config.js --name nextbot-whatsapp-bot', (error, stdout, stderr) => {
     if (error) {
       return res.json({
         success: false,
@@ -89,7 +89,7 @@ router.post('/start', authenticateToken, requireAdmin, (req, res) => {
  * Parar bot
  */
 router.post('/stop', authenticateToken, requireAdmin, (req, res) => {
-  exec('pm2 stop voetur-whatsapp-bot', (error, stdout, stderr) => {
+  exec('pm2 stop nextbot-whatsapp-bot', (error, stdout, stderr) => {
     if (error) {
       return res.json({
         success: false,
@@ -115,7 +115,7 @@ router.post('/stop', authenticateToken, requireAdmin, (req, res) => {
  * Reiniciar bot
  */
 router.post('/restart', authenticateToken, requireAdmin, (req, res) => {
-  exec('pm2 restart voetur-whatsapp-bot', (error, stdout, stderr) => {
+  exec('pm2 restart nextbot-whatsapp-bot', (error, stdout, stderr) => {
     if (error) {
       return res.json({
         success: false,
@@ -143,7 +143,7 @@ router.post('/restart', authenticateToken, requireAdmin, (req, res) => {
 router.get('/logs', authenticateToken, (req, res) => {
   const { lines = 100 } = req.query;
   
-  exec(`pm2 logs voetur-whatsapp-bot --lines ${lines} --nostream`, (error, stdout, stderr) => {
+  exec(`pm2 logs nextbot-whatsapp-bot --lines ${lines} --nostream`, (error, stdout, stderr) => {
     if (error) {
       return res.json({
         success: false,
@@ -155,14 +155,13 @@ router.get('/logs', authenticateToken, (req, res) => {
     res.json({
       success: true,
       logs: stdout,
-      timestamp: new Date().toISOString()
     });
   });
 });
 
 /**
  * GET /api/bot/health
- * Health check do sistema
+ * Health check do bot
  */
 router.get('/health', authenticateToken, (req, res) => {
   res.json({
@@ -236,6 +235,32 @@ router.get('/stats', authenticateToken, (req, res) => {
       );
     }
   );
+});
+
+/**
+ * DELETE /api/bot/stats
+ * Limpar estatísticas do bot
+ */
+router.delete('/stats', authenticateToken, (req, res) => {
+  const db = getDatabase();
+  
+  db.run('DELETE FROM bot_stats', (err) => {
+    db.close();
+    
+    if (err) {
+      console.error('Erro ao limpar estatísticas:', err);
+      return res.json({
+        success: false,
+        message: 'Erro ao limpar estatísticas'
+      });
+    }
+    
+    console.log('✅ Estatísticas limpas com sucesso');
+    res.json({
+      success: true,
+      message: 'Estatísticas limpas com sucesso'
+    });
+  });
 });
 
 /**

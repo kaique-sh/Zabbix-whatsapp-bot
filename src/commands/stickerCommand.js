@@ -71,7 +71,7 @@ async function handleStickerCommand(message, client) {
 
     await client.sendMessage(privateId, stickerMedia, {
       sendMediaAsSticker: true,
-      stickerAuthor: CONFIG.COMPANY_NAME || 'Voetur',
+      stickerAuthor: CONFIG.COMPANY_NAME || 'NextBot Solutions',
       stickerName: 'Gerado pelo Bot'
     });
 

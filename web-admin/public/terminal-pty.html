@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>Terminal PTY - NextBot Solutions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/nextbot-theme.css">
+    
+    <!-- XTerm.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    
+    <meta name="theme-color" content="#FF6B00">
+    <style>
+        .terminal-pty-page {
+            padding: 2rem;
+        }
+
+        .terminal-container {
+            background: #000;
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-top: 1rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        #terminal {
+            height: 600px;
+        }
+
+        .terminal-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .session-info {
+            background: var(--bg-card);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+        }
+
+        .session-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .session-info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .session-info-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .session-info-value {
+            font-weight: 600;
+            color: var(--text-white);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .status-connected {
+            background: rgba(0, 200, 81, 0.15);
+            color: var(--success-color);
+        }
+
+        .status-disconnected {
+            background: rgba(255, 68, 68, 0.15);
+            color: var(--error-color);
+        }
+
+        .status-indicator i {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="terminal-pty-page">
+    <!-- Header -->
+    <div class="header">
+        <h1><i class="fas fa-terminal logo-icon"></i> Terminal PTY Dedicado</h1>
+        <div class="nav-links">
+            <a href="/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/users.html" id="usersMenuLink" style="display: none;"><i class="fas fa-users"></i> Usuários</a>
+            <a href="/terminal.html"><i class="fas fa-code"></i> Terminal</a>
+            <a href="/terminal-pty.html" class="active"><i class="fas fa-terminal"></i> Terminal PTY</a>
+            <a href="/settings.html"><i class="fas fa-cog"></i> Configurações</a>
+        </div>
+        <div class="user-info">
+            <span id="userInfo">Carregando...</span>
+            <button class="btn btn-danger" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Sair
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div id="alert" class="alert hidden"></div>
+
+        <!-- Status da Conexão -->
+        <div class="session-info">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3><i class="fas fa-info-circle"></i> Status da Sessão</h3>
+                <div id="connectionStatus" class="status-indicator status-disconnected">
+                    <i class="fas fa-circle"></i>
+                    <span>Desconectado</span>
+                </div>
+            </div>
+            
+            <div class="session-info-grid" id="sessionInfoGrid" style="display: none;">
+                <div class="session-info-item">
+                    <span class="session-info-label">Session ID</span>
+                    <span class="session-info-value" id="sessionId">-</span>
+                </div>
+                <div class="session-info-item">
+                    <span class="session-info-label">PID</span>
+                    <span class="session-info-value" id="sessionPid">-</span>
+                </div>
+                <div class="session-info-item">
+                    <span class="session-info-label">Diretório</span>
+                    <span class="session-info-value" id="sessionCwd">-</span>
+                </div>
+                <div class="session-info-item">
+                    <span class="session-info-label">Dimensões</span>
+                    <span class="session-info-value" id="sessionDims">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles -->
+        <div class="terminal-controls">
+            <button class="btn btn-primary" onclick="createNewSession()" id="btnCreate">
+                <i class="fas fa-plus"></i> Nova Sessão
+            </button>
+            <button class="btn btn-warning" onclick="listSessions()" id="btnList">
+                <i class="fas fa-list"></i> Listar Sessões
+            </button>
+            <button class="btn btn-danger" onclick="destroyCurrentSession()" id="btnDestroy" disabled>
+                <i class="fas fa-times"></i> Encerrar Sessão
+            </button>
+            <button class="btn btn-secondary" onclick="clearTerminal()" id="btnClear">
+                <i class="fas fa-eraser"></i> Limpar
+            </button>
+        </div>
+
+        <!-- Terminal -->
+        <div class="card">
+            <h3><i class="fas fa-terminal"></i> Terminal Interativo</h3>
+            <div class="terminal-container">
+                <div id="terminal"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <script src="/js/terminal-client.js"></script>
+    
+    <script>
+        let authToken = null;
+        let user = null;
+        let terminalClient = null;
+        let xterm = null;
+        let fitAddon = null;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async () => {
+            authToken = localStorage.getItem('authToken');
+            if (!authToken) {
+                window.location.href = '/';
+                return;
+            }
+
+            try {
+                user = JSON.parse(localStorage.getItem('user'));
+                document.getElementById('userInfo').textContent = `Olá, ${user.username}`;
+
+                // Mostrar menu de usuários se for admin
+                if (user.role === 'admin') {
+                    document.getElementById('usersMenuLink').style.display = 'inline-block';
+                }
+
+                // Inicializar XTerm.js
+                initializeTerminal();
+
+                // Conectar ao servidor
+                await connectToServer();
+
+            } catch (error) {
+                console.error('Erro na inicialização:', error);
+                showAlert('Erro ao inicializar terminal', 'danger');
+            }
+        });
+
+        // Inicializar XTerm.js
+        function initializeTerminal() {
+            xterm = new Terminal({
+                cursorBlink: true,
+                fontSize: 14,
+                fontFamily: '"Fira Code", "Courier New", monospace',
+                theme: {
+                    background: '#000000',
+                    foreground: '#ffffff',
+                    cursor: '#ff6b00',
+                    selection: 'rgba(255, 107, 0, 0.3)',
+                    black: '#000000',
+                    red: '#ff4444',
+                    green: '#00c851',
+                    yellow: '#ffbb33',
+                    blue: '#33b5e5',
+                    magenta: '#aa66cc',
+                    cyan: '#4285f4',
+                    white: '#ffffff',
+                    brightBlack: '#666666',
+                    brightRed: '#ff6b6b',
+                    brightGreen: '#51cf66',
+                    brightYellow: '#ffd43b',
+                    brightBlue: '#74c0fc',
+                    brightMagenta: '#cc5de8',
+                    brightCyan: '#5c7cfa',
+                    brightWhite: '#f8f9fa'
+                },
+                scrollback: 1000,
+                tabStopWidth: 4
+            });
+
+            // Addon para ajustar tamanho
+            fitAddon = new FitAddon.FitAddon();
+            xterm.loadAddon(fitAddon);
+
+            // Montar no DOM
+            xterm.open(document.getElementById('terminal'));
+            fitAddon.fit();
+
+            // Ajustar ao redimensionar janela
+            window.addEventListener('resize', () => {
+                fitAddon.fit();
+                if (terminalClient && terminalClient.isConnected()) {
+                    terminalClient.resize(xterm.cols, xterm.rows);
+                }
+            });
+
+            // Mensagem inicial
+            xterm.writeln('\x1b[1;33m╔══════════════════════════════════════════════════════════╗\x1b[0m');
+            xterm.writeln('\x1b[1;33m║\x1b[0m  \x1b[1;36mNextBot Solutions - Terminal PTY Dedicado\x1b[0m              \x1b[1;33m║\x1b[0m');
+            xterm.writeln('\x1b[1;33m╚══════════════════════════════════════════════════════════╝\x1b[0m');
+            xterm.writeln('');
+            xterm.writeln('\x1b[1;32m✓\x1b[0m Terminal inicializado');
+            xterm.writeln('\x1b[1;33m→\x1b[0m Clique em "Nova Sessão" para começar');
+            xterm.writeln('');
+        }
+
+        // Conectar ao servidor WebSocket
+        async function connectToServer() {
+            try {
+                terminalClient = new TerminalClient();
+
+                // Configurar callbacks
+                terminalClient.onOutput((data) => {
+                    xterm.write(data);
+                });
+
+                terminalClient.onExit((data) => {
+                    xterm.writeln('');
+                    xterm.writeln(`\x1b[1;31m✗ Sessão encerrada (código: ${data.exitCode})\x1b[0m`);
+                    updateConnectionStatus(false);
+                    updateSessionInfo(null);
+                });
+
+                terminalClient.onError((error) => {
+                    xterm.writeln('');
+                    xterm.writeln(`\x1b[1;31m✗ Erro: ${error}\x1b[0m`);
+                    showAlert(error, 'danger');
+                });
+
+                terminalClient.onConnect(() => {
+                    xterm.writeln('\x1b[1;32m✓\x1b[0m Conectado ao servidor');
+                    updateConnectionStatus(true, false);
+                });
+
+                terminalClient.onDisconnect(() => {
+                    xterm.writeln('\x1b[1;31m✗ Desconectado do servidor\x1b[0m');
+                    updateConnectionStatus(false);
+                    updateSessionInfo(null);
+                });
+
+                // Conectar
+                await terminalClient.connect(authToken, user);
+
+            } catch (error) {
+                console.error('Erro ao conectar:', error);
+                xterm.writeln(`\x1b[1;31m✗ Erro ao conectar: ${error.message}\x1b[0m`);
+                showAlert('Erro ao conectar ao servidor', 'danger');
+            }
+        }
+
+        // Criar nova sessão
+        async function createNewSession() {
+            try {
+                xterm.writeln('');
+                xterm.writeln('\x1b[1;33m→ Criando nova sessão...\x1b[0m');
+
+                const session = await terminalClient.createSession({
+                    cols: xterm.cols,
+                    rows: xterm.rows
+                });
+
+                xterm.writeln(`\x1b[1;32m✓ Sessão criada: ${session.sessionId}\x1b[0m`);
+                xterm.writeln('');
+
+                updateSessionInfo(session);
+                updateConnectionStatus(true, true);
+
+                // Configurar input do terminal
+                xterm.onData((data) => {
+                    terminalClient.write(data);
+                });
+
+                // Habilitar botão de destruir
+                document.getElementById('btnDestroy').disabled = false;
+
+            } catch (error) {
+                console.error('Erro ao criar sessão:', error);
+                xterm.writeln(`\x1b[1;31m✗ Erro: ${error.message}\x1b[0m`);
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        // Listar sessões
+        async function listSessions() {
+            try {
+                const sessions = await terminalClient.listSessions();
+                
+                xterm.writeln('');
+                xterm.writeln('\x1b[1;36m═══ Sessões Ativas ═══\x1b[0m');
+                
+                if (sessions.length === 0) {
+                    xterm.writeln('\x1b[1;33mNenhuma sessão ativa\x1b[0m');
+                } else {
+                    sessions.forEach((session, index) => {
+                        xterm.writeln(`\x1b[1;32m${index + 1}.\x1b[0m ${session.sessionId}`);
+                        xterm.writeln(`   PID: ${session.pid} | CWD: ${session.cwd}`);
+                        xterm.writeln(`   Dimensões: ${session.cols}x${session.rows}`);
+                    });
+                }
+                xterm.writeln('');
+
+            } catch (error) {
+                console.error('Erro ao listar sessões:', error);
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        // Destruir sessão atual
+        async function destroyCurrentSession() {
+            if (!confirm('Deseja realmente encerrar a sessão atual?')) {
+                return;
+            }
+
+            try {
+                await terminalClient.destroySession();
+                xterm.writeln('');
+                xterm.writeln('\x1b[1;33m✓ Sessão encerrada\x1b[0m');
+                xterm.writeln('');
+                
+                updateConnectionStatus(true, false);
+                updateSessionInfo(null);
+                document.getElementById('btnDestroy').disabled = true;
+
+            } catch (error) {
+                console.error('Erro ao destruir sessão:', error);
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        // Limpar terminal
+        function clearTerminal() {
+            xterm.clear();
+        }
+
+        // Atualizar status da conexão
+        function updateConnectionStatus(connected, hasSession = false) {
+            const statusEl = document.getElementById('connectionStatus');
+            
+            if (connected && hasSession) {
+                statusEl.className = 'status-indicator status-connected';
+                statusEl.innerHTML = '<i class="fas fa-circle"></i><span>Sessão Ativa</span>';
+            } else if (connected) {
+                statusEl.className = 'status-indicator status-connected';
+                statusEl.innerHTML = '<i class="fas fa-circle"></i><span>Conectado</span>';
+            } else {
+                statusEl.className = 'status-indicator status-disconnected';
+                statusEl.innerHTML = '<i class="fas fa-circle"></i><span>Desconectado</span>';
+            }
+        }
+
+        // Atualizar informações da sessão
+        function updateSessionInfo(session) {
+            const infoGrid = document.getElementById('sessionInfoGrid');
+            
+            if (session) {
+                document.getElementById('sessionId').textContent = session.sessionId || '-';
+                document.getElementById('sessionPid').textContent = session.pid || '-';
+                document.getElementById('sessionCwd').textContent = session.cwd || '-';
+                document.getElementById('sessionDims').textContent = `${session.cols || xterm.cols}x${session.rows || xterm.rows}`;
+                infoGrid.style.display = 'grid';
+            } else {
+                infoGrid.style.display = 'none';
+            }
+        }
+
+        // Logout
+        async function logout() {
+            try {
+                if (terminalClient) {
+                    await terminalClient.destroySession();
+                    terminalClient.disconnect();
+                }
+
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+            } catch (error) {
+                console.error('Erro no logout:', error);
+            }
+
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+
+        // Utilitários
+        function showAlert(message, type = 'info') {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.classList.remove('hidden');
+
+            setTimeout(() => {
+                alert.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Cleanup ao sair
+        window.addEventListener('beforeunload', () => {
+            if (terminalClient) {
+                terminalClient.disconnect();
+            }
+        });
+    </script>
+</body>
+</html>
